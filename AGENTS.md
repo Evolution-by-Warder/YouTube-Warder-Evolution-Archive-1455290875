@@ -16,3 +16,10 @@ Toto je záväzné pravidlo práce vo všetkých repozitároch; **samo vloženie
 
 - Používaj iba existujúce autorizované pripojenia a chráň používateľské nastavenia, tokeny, pluginy a osobné dáta.
 - Vydaj iba artefakty spadajúce do schváleného rozsahu a so všetkými povinnými testami, overenou veľkosťou a SHA-256. V prípade bezpečnostného konfliktu alebo neschváleného rozšírenia zastav publikovanie.
+
+## Technické vykonanie automatického zlúčenia
+
+- Pripravený workflow `.github/workflows/warder-approved-scope-auto-merge.yml` automaticky vyhodnocuje otvorené PR po dokončení relevantného CI, po schvaľovacom komentári a dennou bezpečnostnou kontrolou.
+- Po **existujúcom výslovnom schválení konkrétneho rozsahu** doplň na dotknutý PR komentár z autorizovaného účtu vlastníka `Evolution-by-Warder` obsahujúci presne jediný riadok `<!-- WARDER_APPROVED_SCOPE_SHA:<aktualny-40-znakovy-HEAD-SHA> -->`. Ide o technický záznam už udeleného súhlasu, **nie dôvod znovu sa pýtať používateľa**. Po ďalšom commite najprv skontroluj, či je stále v povolenom rozsahu, a potom obnov schvaľovací SHA marker bez novej otázky.
+- Workflow zlúči iba nedraftový PR z toho istého repozitára do `main`, po úspechu CI, bez konfliktov a s presne zhodným SHA; ochrany vetvy sa nikdy neobchádzajú. **Bez úspešného CI sa nič automaticky nezlučuje.** Zmeny `AGENTS.md` a `.github/workflows/` zostávajú zámerne pod manuálnou bezpečnostnou kontrolou.
+- GitHub zlučovanie samo nevydáva IPK ani nemení produkčný aktualizátor; po merge musí schválený a úspešný projektový vydávací workflow urobiť vlastnú kontrolu oficiálneho artefaktu a až potom publikáciu. Ak publishing nie je automatizovaný alebo zlyhal, hlás to ako blokáciu, nie ako dokončené vydanie.
