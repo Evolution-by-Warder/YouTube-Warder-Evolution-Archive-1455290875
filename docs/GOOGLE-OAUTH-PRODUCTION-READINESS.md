@@ -8,14 +8,14 @@ Prepared 18 November 2026. This is a readiness guide, **not** a claim of Google'
 - Requested scope: `https://www.googleapis.com/auth/youtube.readonly` only.
 - Purpose: read subscriptions and related account metadata for the signed-in user, never modify a Google/YouTube account.
 - Optional: public browsing/player and locally saved favourites/history do not require Google account sign-in.
-- Official public web (once DNS, GitHub Pages and TLS are operational): `https://warder-evolution.eu/youtube.html`.
+- Official web: `https://warder-evolution.eu/` — homepage reached successfully via HTTPS in the owner's browser on 23 November 2026. Intended YouTube-specific page: `https://warder-evolution.eu/youtube.html` (verify that subpage separately before submitting it to Google).
 - Privacy: `https://warder-evolution.eu/privacy.html`.
 - Terms: `https://warder-evolution.eu/terms.html`.
 - Authorized domain: `warder-evolution.eu`.
 - Contact/support: https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/issues
 
 ## Steps that depend on the external provider
-1. Restore working DNS delegation and HTTPS before submitting URLs to Google verification. This is currently blocked by DNS SERVFAIL/REFUSED for this newly registered domain.
+1. DNS and HTTPS for `https://warder-evolution.eu/` were confirmed working by the owner on 23 November 2026 (direct browser screenshot of the loaded homepage). Historical DNS SERVFAIL/REFUSED is **resolved** for this tested path and must not be repeated as a current project blocker. Verify individual OAuth-facing `/youtube.html`, `/privacy.html` and `/terms.html` URLs independently before any Google verification submission; this homepage test alone does not certify those pages or Google's separate approval.
 2. In Google Search Console, verify the DNS **domain property** `warder-evolution.eu` with the Google-provided TXT record. Never invent the record or delete existing GitHub Pages A/CNAME entries.
 3. In Google Cloud Console / Google Auth Platform / Branding, enter the exact homepage, privacy and terms URLs above and authorized domain. Preserve the **same** original OAuth client ID; no credential rotation without planning a migration.
 4. In Data Access, check that no broader scopes were added. Only `youtube.readonly` is needed by current code.
