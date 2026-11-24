@@ -955,14 +955,35 @@ class WarderYouTubeHome(Screen):
         epoch = self._favourites_sync_epoch
         if self.index == 4 and not self._local_items("favourites"):
             self._show_message("Loading your YouTube favourites…")
+        # The first page can be saved before a 5,000-video import finishes.
+        # Marshal its callback back to the GUI thread; workers never touch
+        # Enigma2 widgets directly.
+        progress = None
+        try:
+            from twisted.internet import reactor
+            if callable(getattr(reactor, "callFromThread", None)):
+                progress = lambda partial: reactor.callFromThread(
+                    self._favourites_sync_progress, epoch, partial)
+        except ImportError:
+            pass
         try:
             task = deferToThread(
-                sync_youtube_favourites, cancelled=self._favourites_sync_cancelled)
+                sync_youtube_favourites, cancelled=self._favourites_sync_cancelled,
+                progress=progress)
             task.addCallbacks(
                 lambda result: self._favourites_sync_ready(epoch, result),
                 lambda failure: self._favourites_sync_failed(epoch, failure))
         except Exception:
             self._favourites_sync_failed(epoch, None)
+
+    def _favourites_sync_progress(self, epoch, partial):
+        if (self._disposed or epoch != self._favourites_sync_epoch
+                or not isinstance(partial, dict)):
+            return
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
+            self._update_preview()
 
     def _favourites_sync_ready(self, epoch, result):
         if self._disposed or epoch != self._favourites_sync_epoch:
