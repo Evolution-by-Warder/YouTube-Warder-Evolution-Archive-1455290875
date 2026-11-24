@@ -143,7 +143,7 @@ class InlineLoginTests(unittest.TestCase):
             self.assertTrue(login.active)
             self.assertIn("A1-B2-C3", home.details[-1])
             self.assertEqual(timers[0].ms, 10000)
-            self.assertIn("retrying", home.messages[-1])
+            self.assertIn("Retrying", home.messages[-1])
             login.close()
             self.assertTrue(timers[0].stopped)
 
