@@ -281,6 +281,11 @@ class HomeLivePreviewTests(unittest.TestCase):
             # Old behavior required OK to open a second screen and sync.
             screen.activate()
             self.assertEqual(session.opens, [])
+            saved["favourites"] = [video(9)]
+            screen._favourites_sync_progress(
+                screen._favourites_sync_epoch, {"added": 1})
+            self.assertEqual(screen.video_items[0]["video_id"], video(9)["video_id"])
+            self.assertTrue(screen._favourites_sync_pending)
             saved["favourites"] = [video(9), video(10)]
             queued[0][2].success({"added": 2, "total": 2, "truncated": False,
                                   "capacity_reached": False})
