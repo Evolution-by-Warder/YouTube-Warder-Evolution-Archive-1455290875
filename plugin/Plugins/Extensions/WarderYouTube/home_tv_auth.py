@@ -136,15 +136,26 @@ class HomeTVLogin:
             self._failed(epoch, "YouTube TV login is unavailable.")
 
     def _poll_failed(self, epoch, failure):
+        if not self._current(epoch):
+            return
+        self.polling = False
         error = getattr(failure, "value", failure)
-        safe = {
-            "YouTube account access was denied.",
-            "The YouTube login code has expired.",
-            "Read-only YouTube permission was not granted.",
-            "Google authorization service is unavailable.",
-        }
         message = str(error) if isinstance(error, SubscriptionsAuthError) else ""
-        self._failed(epoch, message if message in safe else "YouTube TV login failed.")
+        # Only definitive denial/expiry invalidates a TV login code.
+        if message in (
+                "YouTube account access was denied.",
+                "The YouTube login code has expired.",
+                "Read-only YouTube permission was not granted."):
+            self._failed(epoch, message)
+            return
+        # A network failure, temporary server error or unknown reply must NOT
+        # destroy a code that Google says remains valid. The screenshot's
+        # seven-second disappearance was the first polling failure.
+        self.interval = min(max(self.interval + 5, 10), 60)
+        self.show_details()
+        self.home["status"].setText(_(
+            "YouTube login check failed; retrying. The code is still valid."))
+        self._schedule()
 
     def _poll_ready(self, epoch, result):
         if not self._current(epoch):
