@@ -18,6 +18,7 @@ PLAYLIST_ID = re.compile(r"^[A-Za-z0-9_-]{10,64}$")
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
 MAX_CHANNEL_PAGES = 20
 MAX_SUBSCRIPTIONS = 500
+MAX_USER_PLAYLISTS = 100
 MAX_RECENT_CHANNELS = 16
 MAX_RECENT_VIDEOS = 24
 
@@ -129,6 +130,58 @@ def subscriptions_list(access_token, opener=urlopen, limit=MAX_SUBSCRIPTIONS,
         return {"channels": found, "truncated": more}
     return found
 
+
+
+def parse_user_playlists(data):
+    """Only playlists returned for the authorized user's own account."""
+    items, seen = [], set()
+    for entry in data.get("items", []):
+        if not isinstance(entry, dict):
+            continue
+        identifier = entry.get("id")
+        snippet = entry.get("snippet") or {}
+        if (not isinstance(identifier, str)
+                or not PLAYLIST_ID.fullmatch(identifier)
+                or identifier in seen
+                or not isinstance(snippet, dict)):
+            continue
+        title = " ".join(html.unescape(str(snippet.get("title") or "")).split())[:160]
+        if not title:
+            continue
+        seen.add(identifier)
+        items.append({"playlist_id": identifier, "title": title})
+    return items
+
+
+def user_playlists_list(access_token, opener=urlopen, limit=MAX_USER_PLAYLISTS):
+    """Read the signed-in user's genuine YouTube playlists, never public guesses.
+
+    Requesting `mine=true` requires the existing youtube.readonly OAuth token.
+    Return at most 100 personal playlists and avoid repeated page tokens.
+    """
+    limit = max(1, min(int(limit), MAX_USER_PLAYLISTS))
+    found, seen, visited = [], set(), set()
+    page = ""
+    for _ in range(4):
+        params = {"part": "snippet", "mine": "true",
+                  "maxResults": min(50, limit - len(found))}
+        if page:
+            params["pageToken"] = page
+        data = _get("playlists", params, access_token, opener)
+        for item in parse_user_playlists(data):
+            if item["playlist_id"] not in seen:
+                found.append(item)
+                seen.add(item["playlist_id"])
+            if len(found) >= limit:
+                break
+        next_page = data.get("nextPageToken") or ""
+        if (len(found) >= limit or not isinstance(next_page, str)
+                or not next_page or len(next_page) > 150
+                or next_page in visited):
+            break
+        visited.add(next_page)
+        page = next_page
+    return found
 
 def uploads_playlists(channel_ids, access_token, opener=urlopen):
     playlist_ids = {}
