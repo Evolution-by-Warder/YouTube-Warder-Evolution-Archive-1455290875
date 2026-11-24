@@ -6,7 +6,7 @@ YouTube – Warder Evolution is a native Enigma2 YouTube plugin for OpenATV and 
 
 ### Features
 - Native Full HD remote-control UI: Home, categories, search and subscriptions.
-- YouTube TV-code sign-in, real account subscriptions and YouTube likes.
+- Improved account authentication stability and session renewal, with real YouTube subscriptions and Likes.
 - One-way automatic import of the account's liked videos into receiver-local favourites on each plugin launch; favourites and viewing history remain on the receiver.
 - MENU action to Like a selected video on YouTube and save it immediately as a local favourite.
 - GStreamer playback fallback and ExtePlayer3 integration.
@@ -19,7 +19,7 @@ YouTube – Warder Evolution is a native Enigma2 YouTube plugin for OpenATV and 
 - OpenATV 7.6: functional testing performed.
 - OpenPLi 9.2: functional testing performed.
 - OpenPLi Scarthgap (GigaBlue Quad 4K Pro): RC4 user-confirmed functional; RC6 upgrade completed without package-manager error.
-- TV-code account sign-in and basic YouTube account use have been verified on a receiver in the 1.0.2 test series.
+- Account authorization and basic YouTube account functions were verified on a receiver during the 1.0.2 testing series.
 - Version 1.0.3 builds on that working test, with automatic favourites sync and verified source/packaging tests; final receiver checks of the 1.0.3 build are separate from CI.
 
 ### Installer notes
