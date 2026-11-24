@@ -89,6 +89,84 @@ class LikedVideoTests(unittest.TestCase):
         self.assertEqual(parse_qs(urlsplit(req.full_url).query)["rating"], ["like"])
         self.assertEqual(req.get_header("Authorization"), "Bearer fake-auth-token")
 
+    def test_successful_like_is_stored_locally_only_once(self):
+        calls = []
+        storage = []
+        def rate(identifier):
+            calls.append(identifier)
+        def store(item):
+            storage.append(dict(item))
+            return True
+        row = {"video_id": "abcdefghijk", "title": "KALI - NIEKEDY 2",
+               "channel": "KALI RECORDS"}
+        result = ratings.like_and_save(row, rate=rate, store=store)
+        self.assertEqual(calls, [row["video_id"]])
+        self.assertEqual(storage[0]["title"], row["title"])
+        self.assertTrue(result["liked"])
+        self.assertTrue(result["local_saved"])
+        self.assertTrue(result["added"])
+
+    def test_rating_error_must_not_create_a_local_favourite(self):
+        operations = []
+        def reject(identifier):
+            raise ratings.VideoRatingError("Rating denied")
+        def store(item):
+            operations.append(item)
+        with self.assertRaises(ratings.VideoRatingError):
+            ratings.like_and_save(video(1), rate=reject, store=store)
+        self.assertEqual(operations, [])
+
+    def test_successful_rating_with_local_storage_error_is_honest(self):
+        def broken_store(item):
+            raise OSError("private path")
+        result = ratings.like_and_save(video(1), rate=lambda identifier: True,
+                                       store=broken_store)
+        self.assertTrue(result["liked"])
+        self.assertFalse(result["local_saved"])
+
+    def test_official_system_likes_playlist_is_read_with_real_account_token(self):
+        token = "private-test-token"
+        auth = types.ModuleType(PKG + ".subscriptions_auth")
+        auth.account_connected = lambda: True
+        auth.read_client = lambda: {"scope": ratings.YOUTUBE_WRITE_SCOPE}
+        auth.access_token = lambda: token
+        auth.SubscriptionsAuthError = type("SubscriptionsAuthError", (Exception,), {})
+        auth.ReauthorizationRequired = type("ReauthorizationRequired", (Exception,), {})
+        requests = []
+        playlist_id = "LL" + "A" * 22
+        def opener(request, timeout):
+            requests.append(request)
+            path = urlsplit(request.full_url).path
+            params = parse_qs(urlsplit(request.full_url).query)
+            self.assertEqual(request.get_header("Authorization"), "Bearer " + token)
+            self.assertNotIn("access_token", params)
+            self.assertNotIn("key", params)
+            if path.endswith("/channels"):
+                self.assertEqual(params["mine"], ["true"])
+                return Response({"items":[{"contentDetails":{"relatedPlaylists":{
+                    "likes": playlist_id}}}]})
+            self.assertTrue(path.endswith("/playlistItems"))
+            self.assertEqual(params["playlistId"], [playlist_id])
+            self.assertEqual(params["maxResults"], ["50"])
+            self.assertEqual(params["pageToken"], ["nextPage"])
+            return Response({"items":[
+                {"contentDetails":{"videoId":"abcdefghijk"},
+                 "snippet":{"title":"KALI - NIEKEDY 2",
+                            "videoOwnerChannelTitle":"KALI RECORDS"}},
+                {"contentDetails":{"videoId":"abcdefghijk"},
+                 "snippet":{"title":"Duplicate"}},
+                {"contentDetails":{"videoId":"invalid"},
+                 "snippet":{"title":"Invalid"}},
+            ], "nextPageToken":"anotherPage"})
+        with patch.dict(sys.modules, {PKG + ".subscriptions_auth": auth}):
+            self.assertEqual(ratings.liked_playlist_id(opener=opener), playlist_id)
+            data = ratings.liked_playlist_page(playlist_id, "nextPage", opener=opener)
+        self.assertEqual(len(data["items"]), 1)
+        self.assertEqual(data["items"][0]["title"], "KALI - NIEKEDY 2")
+        self.assertEqual(data["items"][0]["channel"], "KALI RECORDS")
+        self.assertEqual(data["next_page_token"], "anotherPage")
+        self.assertEqual(len(requests), 2)
+
     def test_403_is_error_not_empty_favourites(self):
         auth = types.ModuleType(PKG + ".subscriptions_auth")
         auth.account_connected = lambda: True
@@ -129,10 +207,55 @@ class OneWaySyncTests(unittest.TestCase):
         self.assertEqual(calls, ["", "page2"])
         got = library.list_videos("favourites", self.path)
         self.assertEqual([x["video_id"] for x in got],
-                         [video(i)["video_id"] for i in (1, 2, 3)])
-        self.assertEqual(got[0]["title"], "Existing title")
+                         [video(i)["video_id"] for i in (2, 3, 1)])
+        self.assertEqual(got[-1]["title"], "Existing title")
         self.assertEqual(len(library.list_videos("history", self.path)), 1)
         self.assertEqual(sync.sync_youtube_favourites(fetch_page=fetch, merge=merge)["added"], 0)
+
+    def test_system_playlist_sync_exceeds_one_thousand_api_limit(self):
+        playlist_id = "LL" + "A" * 22
+        pages = []
+        def fetch(ident, token):
+            self.assertEqual(ident, playlist_id)
+            n = len(pages)
+            pages.append(n)
+            return {"items": [video(n * 50 + i) for i in range(50)],
+                    "next_page_token": "token" + str(n + 1) if n < 22 else ""}
+        def merge(rows):
+            return library.merge_youtube_favourites(rows, self.path)
+        with patch.object(sync, "liked_playlist_id", return_value=playlist_id), patch.object(
+                sync, "liked_playlist_page", side_effect=fetch):
+            result = sync.sync_youtube_favourites(merge=merge)
+        self.assertEqual(result["source"], "likes_playlist")
+        self.assertEqual(result["checked"], 1150)
+        self.assertEqual(result["added"], 1150)
+        self.assertEqual(len(pages), 23)
+        self.assertIn(video(1149)["video_id"],
+                      {x["video_id"] for x in library.list_videos("favourites", self.path)})
+
+    def test_unavailable_system_playlist_falls_back_to_recent_api(self):
+        def recent(token):
+            self.assertEqual(token, "")
+            return {"items": [video(1)], "next_page_token": ""}
+        with patch.object(sync, "liked_playlist_id", return_value=""), patch.object(
+                sync, "liked_videos_page", side_effect=recent):
+            result = sync.sync_youtube_favourites(
+                merge=lambda rows: library.merge_youtube_favourites(rows, self.path))
+        self.assertEqual(result["source"], "recent_api")
+        self.assertEqual(result["added"], 1)
+
+    def test_playlist_access_error_on_first_page_can_fall_back(self):
+        playlist_id = "LL" + "A" * 22
+        def unavailable(identifier, token):
+            raise ratings.VideoRatingError("Playlist not accessible")
+        with patch.object(sync, "liked_playlist_id", return_value=playlist_id), patch.object(
+                sync, "liked_playlist_page", side_effect=unavailable), patch.object(
+                sync, "liked_videos_page", return_value={
+                    "items": [video(11)], "next_page_token": ""}):
+            result = sync.sync_youtube_favourites(
+                merge=lambda rows: library.merge_youtube_favourites(rows, self.path))
+        self.assertEqual(result["source"], "recent_api")
+        self.assertEqual(result["added"], 1)
 
     def test_failure_on_later_page_never_changes_local_file(self):
         library.toggle_favourite(video(1), self.path)
