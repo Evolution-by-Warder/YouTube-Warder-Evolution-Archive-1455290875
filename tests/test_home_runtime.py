@@ -255,6 +255,115 @@ def ready(module):
 
 
 class HomeLivePreviewTests(unittest.TestCase):
+    def test_startup_imports_youtube_likes_without_pressing_ok(self):
+        mod, key, saved, jobs = load(fav=[])
+        screen, session = ready(mod)
+        screen._version_checked = True
+        sync_calls = []
+        def importer(cancelled=None):
+            sync_calls.append(cancelled)
+            return {"added": 2}
+        modules = {
+            "_warder_home.video_ratings": fake(
+                "_warder_home.video_ratings", can_like=lambda: True),
+            "_warder_home.favourites_sync": fake(
+                "_warder_home.favourites_sync", sync_youtube_favourites=importer),
+        }
+        with patch.dict(sys.modules, modules):
+            # Opening Home starts the sync even though no favourite is selected.
+            screen._on_shown()
+            queued = [j for j in jobs if j[0][0] is importer]
+            self.assertEqual(len(queued), 1)
+            self.assertEqual(len(sync_calls), 0)
+            self.assertEqual(session.opens, [])
+            screen._select_nav(4)
+            self.assertIn("Loading your YouTube favourites", screen["preview_message"].text)
+            # Old behavior required OK to open a second screen and sync.
+            screen.activate()
+            self.assertEqual(session.opens, [])
+            saved["favourites"] = [video(9), video(10)]
+            queued[0][2].success({"added": 2, "total": 2, "truncated": False,
+                                  "capacity_reached": False})
+            self.assertEqual(len(screen.video_items), 2)
+            self.assertEqual(screen.video_items[0]["video_id"], video(9)["video_id"])
+            self.assertFalse(screen["preview_message"].visible)
+            self.assertFalse(screen._favourites_sync_pending)
+            # Returning to Home and back must not repeat 20 API pages.
+            screen._select_nav(0)
+            screen._select_nav(4)
+            screen._on_shown()
+            self.assertEqual(len([j for j in jobs if j[0][0] is importer]), 1)
+
+    def test_favourites_sync_runs_once_per_plugin_launch(self):
+        mod, key, saved, jobs = load(fav=[])
+        first, _ = ready(mod)
+        second, _ = ready(mod)
+        first._version_checked = second._version_checked = True
+        def importer(cancelled=None):
+            return {"added": 0}
+        modules = {
+            "_warder_home.video_ratings": fake(
+                "_warder_home.video_ratings", can_like=lambda: True),
+            "_warder_home.favourites_sync": fake(
+                "_warder_home.favourites_sync", sync_youtube_favourites=importer),
+        }
+        with patch.dict(sys.modules, modules):
+            first._on_shown()
+            first._on_shown()
+            second._on_shown()
+            sync_jobs = [j for j in jobs if j[0][0] is importer]
+            self.assertEqual(len(sync_jobs), 2)
+            self.assertIsNot(sync_jobs[0][1]["cancelled"],
+                             sync_jobs[1][1]["cancelled"])
+            first.close()
+            self.assertTrue(sync_jobs[0][1]["cancelled"].is_set())
+            self.assertFalse(sync_jobs[1][1]["cancelled"].is_set())
+            second.close()
+
+    def test_first_login_also_triggers_favourites_sync(self):
+        mod, key, saved, jobs = load(fav=[])
+        screen, _ = ready(mod)
+        screen._version_checked = True
+        connected = {"active": False}
+        def importer(cancelled=None):
+            return {"added": 0}
+        modules = {
+            "_warder_home.video_ratings": fake(
+                "_warder_home.video_ratings",
+                can_like=lambda: connected["active"]),
+            "_warder_home.favourites_sync": fake(
+                "_warder_home.favourites_sync", sync_youtube_favourites=importer),
+        }
+        with patch.dict(sys.modules, modules):
+            screen._on_shown()
+            self.assertFalse(screen._favourites_sync_started)
+            connected["active"] = True
+            screen._subscription_login_ready()
+            self.assertEqual(len([j for j in jobs if j[0][0] is importer]), 1)
+            self.assertTrue(screen._favourites_sync_started)
+
+    def test_closing_home_ignores_late_favourites_sync(self):
+        mod, key, saved, jobs = load(fav=[])
+        screen, _ = ready(mod)
+        screen._version_checked = True
+        def importer(cancelled=None):
+            return {"added": 10}
+        modules = {
+            "_warder_home.video_ratings": fake(
+                "_warder_home.video_ratings", can_like=lambda: True),
+            "_warder_home.favourites_sync": fake(
+                "_warder_home.favourites_sync", sync_youtube_favourites=importer),
+        }
+        with patch.dict(sys.modules, modules):
+            screen._on_shown()
+            screen._select_nav(4)
+            sync_job = next(j for j in jobs if j[0][0] is importer)
+            screen.close()
+            self.assertTrue(sync_job[1]["cancelled"].is_set())
+            sync_job[2].success({"added": 10})
+            self.assertEqual(screen.video_items, [])
+            self.assertTrue(screen._disposed)
+
     def test_playlist_removed_and_seven_menu_items_keep_their_actions(self):
         mod, key, saved, jobs = load()
         self.assertEqual([row[0] for row in mod.SECTIONS], [
