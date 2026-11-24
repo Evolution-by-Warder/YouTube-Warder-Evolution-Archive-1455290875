@@ -177,6 +177,61 @@ class LibraryUiTests(unittest.TestCase):
             self.assertEqual(len(screen.video_items), 1)
         self.assertEqual(jobs, [])
 
+    def test_open_favourites_imports_missing_account_likes_in_worker(self):
+        ui, fake, videos, jobs, played, recorded = load()
+        worker = lambda: None
+        fake["_test_warder_library.video_ratings"] = mkmod(
+            "_test_warder_library.video_ratings",
+            can_like=lambda: True,
+            VideoRatingError=type("VideoRatingError", (Exception,), {}),
+        )
+        fake["_test_warder_library.favourites_sync"] = mkmod(
+            "_test_warder_library.favourites_sync",
+            sync_youtube_favourites=worker,
+        )
+        with patch.dict(sys.modules, fake):
+            screen = ui.WarderYouTubeLibrary(Session(), "favourites")
+            screen.on_show()
+            self.assertEqual(screen.video_items[0]["title"], "Song 2")
+            self.assertEqual(len(jobs), 1)
+            self.assertIs(jobs[0][0], worker)
+            screen.on_show()
+            self.assertEqual(len(jobs), 1)
+            videos["favourites"].append(sample(3))
+            jobs[0][3].success({"added": 1, "total": 2,
+                               "capacity_reached": False, "truncated": False})
+            self.assertEqual(len(screen.video_items), 2)
+            self.assertIn("Z YouTube doplnené: 1", screen["status"].text)
+            screen.on_show()
+            self.assertEqual(len(jobs), 1)
+            screen.close()
+
+    def test_failed_remote_sync_leaves_local_favourites_unchanged(self):
+        ui, fake, videos, jobs, played, recorded = load()
+        error_type = type("VideoRatingError", (Exception,), {})
+        fake["_test_warder_library.video_ratings"] = mkmod(
+            "_test_warder_library.video_ratings",
+            can_like=lambda: True, VideoRatingError=error_type,
+        )
+        fake["_test_warder_library.favourites_sync"] = mkmod(
+            "_test_warder_library.favourites_sync", sync_youtube_favourites=lambda: None
+        )
+        with patch.dict(sys.modules, fake):
+            screen = ui.WarderYouTubeLibrary(Session(), "favourites")
+            screen.on_show()
+            jobs[0][3].failure(types.SimpleNamespace(value=error_type("Network failed")))
+            self.assertEqual(len(videos["favourites"]), 1)
+            self.assertEqual(len(screen.video_items), 1)
+            self.assertIn("Network failed", screen["status"].text)
+
+    def test_history_does_not_import_youtube_likes(self):
+        ui, fake, videos, jobs, played, recorded = load()
+        with patch.dict(sys.modules, fake):
+            screen = ui.WarderYouTubeLibrary(Session(), "history")
+            screen.on_show()
+        self.assertEqual(jobs, [])
+        self.assertEqual(len(screen.video_items), 1)
+
     def test_coloured_keys_name_exact_favourite_or_history_action(self):
         ui, fake, videos, jobs, played, recorded = load()
         for kind, yellow, blue, token in (

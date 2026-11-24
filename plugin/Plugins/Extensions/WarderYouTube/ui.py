@@ -6,6 +6,7 @@ without an explicit remote action. No global Enigma2 skin or custom renderer.
 """
 from .header_ui import add_header
 from time import monotonic, time
+from threading import Event
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.Pixmap import Pixmap
@@ -201,6 +202,12 @@ class WarderYouTubeHome(Screen):
         self._confirm_open = False
         self._quick_select_open = False
         self._play_request = 0
+        # Exactly one background account-likes sync per Home launch.
+        self._favourites_sync_started = False
+        self._favourites_sync_pending = False
+        self._favourites_sync_error = False
+        self._favourites_sync_epoch = 0
+        self._favourites_sync_cancelled = Event()
         self.installed_version = CURRENT_VERSION
         self._version_checked = False
         self._inline_updater = None
@@ -309,6 +316,8 @@ class WarderYouTubeHome(Screen):
         if self._mounted and not self._disposed:
             self._request_personalization(force=self._auth_maybe_changed)
             self._auth_maybe_changed = False
+            # Do not wait for the user to highlight or press OK on Favourites.
+            self._request_favourites_sync()
         # Returning from player/library refreshes local data, but does not
         # automatically poll the update server or repeat the popular feed.
         if self._mounted and not self._disposed and not self._playback_active:
@@ -343,6 +352,8 @@ class WarderYouTubeHome(Screen):
     def dispose(self):
         self._disposed = True
         self._play_request += 1
+        self._favourites_sync_cancelled.set()
+        self._favourites_sync_epoch += 1
         if self._home_search_flow is not None:
             self._home_search_flow.dispose()
         if self._inline_tv_login is not None:
@@ -815,6 +826,14 @@ class WarderYouTubeHome(Screen):
         self._subscriptions_connected = True
         self._personal_fetched_at = 0
         self._personal_requested = False
+        # A new login is a new account snapshot, even within the same Home.
+        self._favourites_sync_cancelled.set()
+        self._favourites_sync_cancelled = Event()
+        self._favourites_sync_started = False
+        self._favourites_sync_pending = False
+        self._favourites_sync_error = False
+        self._favourites_sync_epoch += 1
+        self._request_favourites_sync()
         self._request_personalization(force=True)
 
     def _clear_preview(self, clear_thumbnails=True):
@@ -911,6 +930,86 @@ class WarderYouTubeHome(Screen):
             # The tile already shows title + channel. Do not duplicate the
             # selected title again on the bottom status line during browsing.
             self["status"].setText("")
+
+    def _request_favourites_sync(self):
+        """Start automatic one-way YouTube likes import per plugin opening.
+
+        Account lookup performs local reads only. Full synchronization runs in
+        Twisted's worker pool and never blocks the Enigma2 UI.
+        """
+        if (self._disposed or not self._mounted
+                or self._favourites_sync_started):
+            return
+        try:
+            from .video_ratings import can_like
+            from .favourites_sync import sync_youtube_favourites
+        except ImportError:
+            # Missing optional module must never crash the TV Home screen.
+            return
+        if not can_like():
+            return
+        self._favourites_sync_started = True
+        self._favourites_sync_pending = True
+        self._favourites_sync_error = False
+        self._favourites_sync_epoch += 1
+        epoch = self._favourites_sync_epoch
+        if self.index == 4 and not self._local_items("favourites"):
+            self._show_message("Loading your YouTube favourites…")
+        # The first page can be saved before a 5,000-video import finishes.
+        # Marshal its callback back to the GUI thread; workers never touch
+        # Enigma2 widgets directly.
+        progress = None
+        try:
+            from twisted.internet import reactor
+            if callable(getattr(reactor, "callFromThread", None)):
+                progress = lambda partial: reactor.callFromThread(
+                    self._favourites_sync_progress, epoch, partial)
+        except ImportError:
+            pass
+        try:
+            task = deferToThread(
+                sync_youtube_favourites, cancelled=self._favourites_sync_cancelled,
+                progress=progress)
+            task.addCallbacks(
+                lambda result: self._favourites_sync_ready(epoch, result),
+                lambda failure: self._favourites_sync_failed(epoch, failure))
+        except Exception:
+            self._favourites_sync_failed(epoch, None)
+
+    def _favourites_sync_progress(self, epoch, partial):
+        if (self._disposed or epoch != self._favourites_sync_epoch
+                or not isinstance(partial, dict)):
+            return
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
+            self._update_preview()
+
+    def _favourites_sync_ready(self, epoch, result):
+        if self._disposed or epoch != self._favourites_sync_epoch:
+            return
+        self._favourites_sync_pending = False
+        if not isinstance(result, dict) or result.get("cancelled"):
+            self._favourites_sync_error = True
+        else:
+            self._favourites_sync_error = False
+        # Refresh only the active favourites section. Never interrupt videos
+        # or change focus if the user is browsing Home, Odbery, or Search.
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
+            self._update_preview()
+
+    def _favourites_sync_failed(self, epoch, failure):
+        if self._disposed or epoch != self._favourites_sync_epoch:
+            return
+        self._favourites_sync_pending = False
+        self._favourites_sync_error = True
+        # A temporary error must not clear locally saved favourites.
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
+            self._update_preview()
 
     def _local_items(self, kind):
         try:
@@ -1147,7 +1246,13 @@ class WarderYouTubeHome(Screen):
         elif self.index == 3:
             self._show_tiles(self._local_items("history"), "Recently played videos")
         elif self.index == 4:
-            self._show_tiles(self._local_items("favourites"), "Saved videos")
+            favourites = self._local_items("favourites")
+            if not favourites and self._favourites_sync_pending:
+                self._show_message("Loading your YouTube favourites…")
+            elif not favourites and self._favourites_sync_error:
+                self._show_message("Could not load YouTube favourites. Saved videos are unchanged.")
+            else:
+                self._show_tiles(favourites, "Saved videos")
         elif self.index == 5:
             self._show_details([
                 _("YouTube account") + ": " + (_("Signed in") if account_available() else _("Not signed in")),
@@ -1577,6 +1682,11 @@ class WarderYouTubeHome(Screen):
             else:
                 self._open_subscription_login()
         elif index in (3, 4):
+            if index == 4 and self._favourites_sync_pending:
+                # The initial empty right pane is a loading state, not a
+                # reason to open a second screen and duplicate the API calls.
+                self._show_message("Loading your YouTube favourites…")
+                return
             from .library_ui import WarderYouTubeLibrary
             self.session.open(WarderYouTubeLibrary,
                               "history" if index == 3 else "favourites")
@@ -1779,6 +1889,8 @@ class WarderYouTubeHome(Screen):
             self.info()
         elif action == "search":
             self._open_index(1)
+        elif action == "like_youtube":
+            self._like_youtube(item)
         elif action == "favorite":
             try:
                 toggle_favourite(item)
@@ -1802,6 +1914,50 @@ class WarderYouTubeHome(Screen):
                  else _("Clear entire history")) + "?"
             )
 
+    def _like_youtube(self, item):
+        """Rate the explicitly chosen video, never in a GUI callback."""
+        if self._disposed or self._busy or self._playback_active:
+            return
+        from .video_ratings import like_and_save
+        self._busy = True
+        self._play_request += 1
+        version = self._play_request
+        self["status"].setText(_("Odosielam Páči sa mi na YouTube…"))
+        try:
+            task = deferToThread(like_and_save, dict(item))
+            task.addCallbacks(
+                lambda saved: self._like_youtube_ready(version, saved),
+                lambda err: self._like_youtube_failed(version, err))
+        except Exception:
+            self._like_youtube_failed(version, None)
+
+    def _like_youtube_ready(self, version, saved):
+        if self._disposed or version != self._play_request:
+            return
+        self._busy = False
+        if isinstance(saved, dict) and saved.get("local_saved") and self.index == 4:
+            self._update_preview()
+        success = isinstance(saved, dict) and saved.get("liked")
+        local = success and saved.get("local_saved")
+        self["status"].setText(
+            _("Video označené Páči sa mi na YouTube. Uložené aj do Obľúbených.")
+            if local else
+            _("Páči sa mi na YouTube bolo potvrdené, ale miestne uloženie zlyhalo.")
+            if success else _("YouTube nepotvrdil hodnotenie videa.")
+        )
+        self["status"].show()
+
+    def _like_youtube_failed(self, version, failure):
+        if self._disposed or version != self._play_request:
+            return
+        self._busy = False
+        error = getattr(failure, "value", failure)
+        from .video_ratings import VideoRatingError
+        self["status"].setText(
+            str(error) if isinstance(error, VideoRatingError)
+            else _("Nepodarilo sa označiť Páči sa mi.")
+        )
+
     def _disconnect_confirmed(self, confirmed):
         self._confirm_open = False
         if (not confirmed or self._disposed or self.index != 2
@@ -1810,6 +1966,9 @@ class WarderYouTubeHome(Screen):
         from .subscriptions_auth import disconnect_account
         self._busy = True
         # Prevent an older account worker from repopulating the new empty list.
+        self._favourites_sync_cancelled.set()
+        self._favourites_sync_epoch += 1
+        self._favourites_sync_pending = False
         self._personal_epoch += 1
         self._personal_requested = False
         self._personal_video_epoch += 1

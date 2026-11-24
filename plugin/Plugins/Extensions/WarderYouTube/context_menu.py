@@ -7,6 +7,7 @@ from Screens.Screen import Screen
 
 from .i18n import tr as _
 from .skin import CONTEXT_SKIN
+from .video_ratings import can_like
 
 
 class WarderYouTubeContext(Screen):
@@ -21,6 +22,10 @@ class WarderYouTubeContext(Screen):
             ("info", _("Video details")),
         ] if mode not in ("home", "subscriptions") or (
             isinstance(video, dict) and video.get("video_id")) else [])
+        if (isinstance(video, dict) and video.get("video_id")
+                and can_like()):
+            # A real account Like is separate from receiver-local favourites.
+            self.options.insert(2, ("like_youtube", _("Označiť Páči sa mi na YouTube")))
         if mode in ("home", "subscriptions"):
             self.options.insert(0, (
                 "choose_subscription" if mode == "subscriptions" else "choose_category",
@@ -29,7 +34,7 @@ class WarderYouTubeContext(Screen):
             ))
         if mode == "subscriptions":
             # Selected video: 1 quick selector + 3 video actions + logout.
-            # Keep at most five native context rows; BLUE still opens Search.
+            # Keep existing actions; signed-in users get a sixth Like row.
             self.options.append(("disconnect_account", _("Disconnect YouTube account")))
         elif mode == "home":
             # One slot remains in the five-row context menu. The BLUE key
@@ -51,7 +56,7 @@ class WarderYouTubeContext(Screen):
         self["heading"] = Label(_("Video actions"))
         self["video"] = Label(str((video or {}).get("title") or _("No video selected"))[:155])
         self.selected = 0
-        for index in range(5):
+        for index in range(6):
             self["context_focus%d" % index] = Label(" ")
             self["context_row%d" % index] = Label(
                 self.options[index][1] if index < len(self.options) else ""
@@ -78,7 +83,7 @@ class WarderYouTubeContext(Screen):
 
     def update_focus(self):
         current = self.selected
-        for index in range(5):
+        for index in range(6):
             focus = self["context_focus%d" % index]
             if index == current and index < len(self.options):
                 focus.show()

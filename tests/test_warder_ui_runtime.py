@@ -432,6 +432,23 @@ class WarderNativeUiTests(unittest.TestCase):
         subs.choose()
         self.assertEqual(subs.closed_args, ("choose_subscription",))
 
+    def test_like_is_available_only_with_full_youtube_account(self):
+        menu = load("context_menu")
+        video = {"video_id": "abcdefghijk", "title": "Video"}
+        menu.can_like = lambda: False
+        original = menu.WarderYouTubeContext(None, video, False, "search")
+        self.assertNotIn("like_youtube", [action for action, _ in original.options])
+        menu.can_like = lambda: True
+        for kind in ("search", "home", "subscriptions", "history", "favourites"):
+            with self.subTest(mode=kind):
+                screen = menu.WarderYouTubeContext(None, video, False, kind)
+                actions = [action for action, _ in screen.options]
+                self.assertIn("like_youtube", actions)
+                self.assertLessEqual(len(actions), 6)
+                screen.selected = actions.index("like_youtube")
+                screen.choose()
+                self.assertEqual(screen.closed_args, ("like_youtube",))
+
     def test_native_confirmation_defaults_to_no(self):
         m = load("confirm_ui")
         screen = m.WarderYouTubeConfirm(None, "Install test7?")
@@ -738,7 +755,7 @@ class WarderNativeUiTests(unittest.TestCase):
             names = {w.attrib["name"]: w for w in root.findall("widget")}
             self.assertNotIn("menu", names)
             prefix = "context" if root.attrib["name"] == "WarderYouTubeContext" else "confirm"
-            count = 5 if prefix == "context" else 2
+            count = 6 if prefix == "context" else 2
             for i in range(count):
                 self.assertEqual(names["%s_focus%d" % (prefix, i)].attrib["transparent"], "0")
                 self.assertIn("backgroundColor", names["%s_focus%d" % (prefix, i)].attrib)
