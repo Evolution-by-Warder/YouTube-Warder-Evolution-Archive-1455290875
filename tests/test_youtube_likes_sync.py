@@ -207,8 +207,8 @@ class OneWaySyncTests(unittest.TestCase):
         self.assertEqual(calls, ["", "page2"])
         got = library.list_videos("favourites", self.path)
         self.assertEqual([x["video_id"] for x in got],
-                         [video(i)["video_id"] for i in (2, 3, 1)])
-        self.assertEqual(got[-1]["title"], "Existing title")
+                         [video(i)["video_id"] for i in (1, 2, 3)])
+        self.assertEqual(got[0]["title"], "Existing title")
         self.assertEqual(len(library.list_videos("history", self.path)), 1)
         self.assertEqual(sync.sync_youtube_favourites(fetch_page=fetch, merge=merge)["added"], 0)
 
