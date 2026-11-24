@@ -68,8 +68,8 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(result["added"], 2)
         saved = m.list_videos("favourites", self.path)
         self.assertEqual([v["video_id"] for v in saved],
-                         [video(1)["video_id"], video(2)["video_id"], video(5)["video_id"]])
-        self.assertEqual(saved[0]["title"], "Local edited title")
+                         [video(2)["video_id"], video(5)["video_id"], video(1)["video_id"]])
+        self.assertEqual(saved[-1]["title"], "Local edited title")
         self.assertEqual(len(m.list_videos("history", self.path)), 1)
         self.assertNotIn("SECRET", self.path.read_text("utf-8"))
         self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
@@ -82,11 +82,29 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(merged["total"], m.LIMITS["favourites"])
         self.assertTrue(merged["capacity_reached"])
         saved = m.list_videos("favourites", self.path)
-        self.assertEqual(saved[0]["video_id"], video(1)["video_id"])
+        self.assertEqual(saved[-1]["video_id"], video(1)["video_id"])
         self.assertIn(video(2)["video_id"], {v["video_id"] for v in saved})
         self.assertNotIn(video(m.LIMITS["favourites"]+6)["video_id"],
                          {v["video_id"] for v in saved})
         self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+
+    def test_confirmed_like_is_saved_at_front_without_toggling(self):
+        m.toggle_favourite(video(1), self.path)
+        m.merge_youtube_favourites([video(2)], self.path)
+        self.assertTrue(m.save_confirmed_youtube_like(video(3), self.path))
+        self.assertEqual([x["video_id"] for x in m.list_videos("favourites", self.path)],
+                         [video(3)["video_id"], video(2)["video_id"], video(1)["video_id"]])
+        before = self.path.read_bytes()
+        self.assertFalse(m.save_confirmed_youtube_like(video(3), self.path))
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertFalse(m.save_confirmed_youtube_like(video(2), self.path))
+        self.assertEqual(len(m.list_videos("favourites", self.path)), 3)
+
+    def test_confirmed_like_does_not_overwrite_corrupt_library(self):
+        self.path.write_text("{BROKEN", encoding="utf-8")
+        with self.assertRaises(m.LibraryError):
+            m.save_confirmed_youtube_like(video(17), self.path)
+        self.assertEqual(self.path.read_text("utf-8"), "{BROKEN")
 
     def test_corrupt_library_is_not_overwritten_by_youtube_merge(self):
         self.path.write_text("{BROKEN", encoding="utf-8")
