@@ -156,11 +156,16 @@ def poll_device_code(client, device_code, opener=urlopen):
     if url not in (TOKEN_URL, LEGACY_TOKEN_URL) or grant not in (
             CURRENT_DEVICE_GRANT, LEGACY_DEVICE_GRANT):
         raise SubscriptionsAuthError("Invalid YouTube token endpoint.")
-    response = _post(url, {
-        "client_id": client["client_id"], "client_secret": client["client_secret"],
-        "device_code": device_code,
+    # Taapat's original TV OAuth endpoint takes the parameter "code";
+    # the current RFC device grant takes "device_code". Mixing these
+    # formats makes the FIRST poll fail and the TV code vanish after ~5 s.
+    token_parameters = {
+        "client_id": client["client_id"],
+        "client_secret": client["client_secret"],
         "grant_type": grant,
-    }, opener)
+    }
+    token_parameters["code" if grant == LEGACY_DEVICE_GRANT else "device_code"] = device_code
+    response = _post(url, token_parameters, opener)
     error = response.get("error")
     if error in ("authorization_pending", "slow_down"):
         return error, None
