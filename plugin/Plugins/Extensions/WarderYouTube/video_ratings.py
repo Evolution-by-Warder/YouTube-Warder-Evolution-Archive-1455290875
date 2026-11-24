@@ -122,7 +122,7 @@ def liked_videos_page(page_token="", opener=urlopen, timeout=8):
     thread. Do not silently report an empty list after 401/403.
     """
     if (not isinstance(page_token, str) or len(page_token) > 150
-            or any(c in page_token for c in "\\r\\n\\0")):
+            or any(c in page_token for c in "\r\n\x00")):
         raise VideoRatingError("Neplatná stránka YouTube obľúbených.")
     from .subscriptions_auth import (
         account_connected, read_client, access_token,
