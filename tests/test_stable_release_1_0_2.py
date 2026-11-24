@@ -17,7 +17,7 @@ class StableReleaseConsistencyTests(unittest.TestCase):
 
     def test_test_builder_remains_separate_and_main_menu_opt_in(self):
         source = (ROOT / "tools/build_test_ipk.py").read_text()
-        self.assertIn('VERSION = "1.0.2~test3"', source)
+        self.assertIn('VERSION = "1.0.2~test4"', source)
         self.assertIn('CURRENT_VERSION = "1.0.2"', source)
         settings = (PKG / "settings.py").read_text()
         self.assertIn("ConfigYesNo(default=False)", settings)
