@@ -940,10 +940,14 @@ class WarderYouTubeHome(Screen):
         if (self._disposed or not self._mounted
                 or self._favourites_sync_started):
             return
-        from .video_ratings import can_like
+        try:
+            from .video_ratings import can_like
+            from .favourites_sync import sync_youtube_favourites
+        except ImportError:
+            # Missing optional module must never crash the TV Home screen.
+            return
         if not can_like():
             return
-        from .favourites_sync import sync_youtube_favourites
         self._favourites_sync_started = True
         self._favourites_sync_pending = True
         self._favourites_sync_error = False
