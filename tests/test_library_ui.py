@@ -201,7 +201,7 @@ class LibraryUiTests(unittest.TestCase):
             jobs[0][3].success({"added": 1, "total": 2,
                                "capacity_reached": False, "truncated": False})
             self.assertEqual(len(screen.video_items), 2)
-            self.assertIn("1 videí", screen["status"].text)
+            self.assertIn("Z YouTube doplnené: 1", screen["status"].text)
             screen.on_show()
             self.assertEqual(len(jobs), 1)
             screen.close()
