@@ -1897,13 +1897,13 @@ class WarderYouTubeHome(Screen):
         """Rate the explicitly chosen video, never in a GUI callback."""
         if self._disposed or self._busy or self._playback_active:
             return
-        from .video_ratings import like_video
+        from .video_ratings import like_and_save
         self._busy = True
         self._play_request += 1
         version = self._play_request
         self["status"].setText(_("Odosielam Páči sa mi na YouTube…"))
         try:
-            task = deferToThread(like_video, item["video_id"])
+            task = deferToThread(like_and_save, dict(item))
             task.addCallbacks(
                 lambda saved: self._like_youtube_ready(version, saved),
                 lambda err: self._like_youtube_failed(version, err))
@@ -1914,10 +1914,17 @@ class WarderYouTubeHome(Screen):
         if self._disposed or version != self._play_request:
             return
         self._busy = False
+        if isinstance(saved, dict) and saved.get("local_saved") and self.index == 4:
+            self._update_preview()
+        success = isinstance(saved, dict) and saved.get("liked")
+        local = success and saved.get("local_saved")
         self["status"].setText(
-            _("Video označené Páči sa mi na YouTube.")
-            if saved is True else _("YouTube nepotvrdil hodnotenie videa.")
+            _("Video označené Páči sa mi na YouTube. Uložené aj do Obľúbených.")
+            if local else
+            _("Páči sa mi na YouTube bolo potvrdené, ale miestne uloženie zlyhalo.")
+            if success else _("YouTube nepotvrdil hodnotenie videa.")
         )
+        self["status"].show()
 
     def _like_youtube_failed(self, version, failure):
         if self._disposed or version != self._play_request:
