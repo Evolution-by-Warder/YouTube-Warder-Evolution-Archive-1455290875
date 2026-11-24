@@ -68,8 +68,8 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(result["added"], 2)
         saved = m.list_videos("favourites", self.path)
         self.assertEqual([v["video_id"] for v in saved],
-                         [video(2)["video_id"], video(5)["video_id"], video(1)["video_id"]])
-        self.assertEqual(saved[-1]["title"], "Local edited title")
+                         [video(2)["video_id"], video(1)["video_id"], video(5)["video_id"]])
+        self.assertEqual(saved[1]["title"], "Local edited title")
         self.assertEqual(len(m.list_videos("history", self.path)), 1)
         self.assertNotIn("SECRET", self.path.read_text("utf-8"))
         self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
@@ -87,6 +87,27 @@ class StorageTests(unittest.TestCase):
         self.assertNotIn(video(m.LIMITS["favourites"]+6)["video_id"],
                          {v["video_id"] for v in saved})
         self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+
+    def test_remote_latest_like_reorders_existing_video_without_overwriting(self):
+        m.toggle_favourite(video(1, title="KALI saved locally"), self.path)
+        m.toggle_favourite(video(2), self.path)
+        m.toggle_favourite(video(3), self.path)
+        before = m.list_videos("favourites", self.path)
+        self.assertEqual([x["video_id"] for x in before],
+                         [video(i)["video_id"] for i in (3, 2, 1)])
+        # The user's newest web Like (KALI) must rise to first page even
+        # if it was already saved in the receiver before the full import.
+        result = m.merge_youtube_favourites(
+            [video(1, title="Remote replacement"), video(3)], self.path)
+        self.assertEqual(result["added"], 0)
+        after = m.list_videos("favourites", self.path)
+        self.assertEqual([x["video_id"] for x in after],
+                         [video(i)["video_id"] for i in (1, 3, 2)])
+        self.assertEqual(after[0]["title"], "KALI saved locally")
+        original = self.path.read_bytes()
+        self.assertEqual(m.merge_youtube_favourites(
+            [video(1), video(3)], self.path)["added"], 0)
+        self.assertEqual(self.path.read_bytes(), original)
 
     def test_confirmed_like_is_saved_at_front_without_toggling(self):
         m.toggle_favourite(video(1), self.path)
