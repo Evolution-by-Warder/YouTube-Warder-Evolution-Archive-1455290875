@@ -138,7 +138,7 @@ class InlineLoginTests(unittest.TestCase):
             tasks[0][1].success(({"client_id": "test"}, code))
             timers[0].fire()
             self.assertEqual(len(tasks), 2)
-            tasks[1][1].failure(Exception("temporary network problem"))
+            tasks[1][1].failure(mod.SubscriptionsAuthError("Google authorization service is unavailable."))
             self.assertFalse(login.closed)
             self.assertTrue(login.active)
             self.assertIn("A1-B2-C3", home.details[-1])
