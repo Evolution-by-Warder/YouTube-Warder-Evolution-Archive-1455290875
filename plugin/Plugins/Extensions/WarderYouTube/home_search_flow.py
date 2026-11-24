@@ -31,12 +31,15 @@ class HomeSearchFlow:
         self.grid_open = False
         self.grid = None
         self.context_open = False
+        self.rating_busy = False
+        self.rating_request = 0
         self.disposed = False
 
     def dispose(self):
         self.disposed = True
         self.cancel_pending()
         self.info_request += 1
+        self.rating_request += 1
         self.grid = None
 
     def cancel_pending(self):
@@ -238,6 +241,8 @@ class HomeSearchFlow:
             self.play_video(video)
         elif action == "info":
             self.info_video(video)
+        elif action == "like_youtube":
+            self._like_youtube(video)
         elif action == "favorite":
             from .local_library import toggle_favourite, LibraryError
             try:
@@ -249,3 +254,37 @@ class HomeSearchFlow:
         elif action == "search" and self.grid is not None:
             # The grid's close callback returns directly to Home's two panes.
             self.grid.close("search")
+
+    def _like_youtube(self, video):
+        if (self.disposed or self.home._disposed or not self.grid_open
+                or self.rating_busy or self.home._playback_active):
+            return
+        from .video_ratings import like_video
+        self.rating_busy = True
+        self.rating_request += 1
+        ticket = self.rating_request
+        self._status("Odosielam Páči sa mi na YouTube…", override=True)
+        try:
+            task = deferToThread(like_video, video["video_id"])
+            task.addCallbacks(lambda ok: self._like_ready(ticket, ok),
+                              lambda error: self._like_failed(ticket, error))
+        except Exception:
+            self._like_failed(ticket, None)
+
+    def _like_ready(self, ticket, result):
+        if (self.disposed or self.home._disposed or not self.grid_open
+                or ticket != self.rating_request):
+            return
+        self.rating_busy = False
+        self._status("Video označené Páči sa mi na YouTube." if result is True
+                     else "YouTube nepotvrdil hodnotenie videa.", override=True)
+
+    def _like_failed(self, ticket, failure):
+        if (self.disposed or self.home._disposed or not self.grid_open
+                or ticket != self.rating_request):
+            return
+        self.rating_busy = False
+        error = getattr(failure, "value", failure)
+        from .video_ratings import VideoRatingError
+        self._status(str(error) if isinstance(error, VideoRatingError)
+                     else "Nepodarilo sa označiť Páči sa mi.", override=True)
