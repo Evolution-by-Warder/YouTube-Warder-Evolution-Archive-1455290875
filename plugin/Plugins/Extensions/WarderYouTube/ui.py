@@ -61,7 +61,6 @@ def _discover_home_subscriptions():
     """
     try:
         from .subscriptions_auth import account_connected, access_token, ReauthorizationRequired
-        from .subscriptions_api import subscriptions_list, user_playlists_list, SubscriptionsApiError
         if not account_connected():
             return {"connected": False, "channels": []}
         token = access_token()
@@ -70,6 +69,9 @@ def _discover_home_subscriptions():
     except Exception:
         return {"connected": True, "channels": [], "load_error": True}
     try:
+        # Fetching account data happens only after the token was validated;
+        # an expired token must request reconnect even if a backend is absent.
+        from .subscriptions_api import subscriptions_list, user_playlists_list, SubscriptionsApiError
         response = subscriptions_list(token, limit=500, with_metadata=True)
     except Exception:
         return {"connected": True, "channels": [], "load_error": True}
