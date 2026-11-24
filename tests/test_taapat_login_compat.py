@@ -83,6 +83,10 @@ class TVCompatibilityTests(unittest.TestCase):
             self.assertEqual(params["client_id"], [client["client_id"]])
             if len(captured) == 1:
                 self.assertEqual(params["grant_type"], [auth.LEGACY_DEVICE_GRANT])
+                # This is the actual parameter name required by Taapat's
+                # older device grant; device_code triggers a first-poll error.
+                self.assertEqual(params["code"], ["device-code-value"])
+                self.assertNotIn("device_code", params)
                 return Response({"access_token": "TEST-user-token",
                                  "refresh_token": "TEST-refresh-token",
                                  "scope": auth.TAAPAT_SCOPE,
@@ -106,6 +110,30 @@ class TVCompatibilityTests(unittest.TestCase):
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         self.assertEqual(len(captured), 2)
         self.assertNotIn("TEST-refresh-token", captured[1].full_url)
+
+    def test_legacy_pending_does_not_fail_before_user_enters_code(self):
+        client = auth.read_client()
+        calls = []
+        def opener(req, timeout):
+            params = parse_qs(req.data.decode("ascii"))
+            calls.append(params)
+            return Response({"error": "authorization_pending"})
+        result = auth.poll_device_code(client, "device-code-value", opener=opener)
+        self.assertEqual(result, ("authorization_pending", None))
+        self.assertEqual(calls[0]["code"], ["device-code-value"])
+        self.assertNotIn("device_code", calls[0])
+
+    def test_modern_device_grant_keeps_its_device_code_parameter(self):
+        client = {"client_id": "12345678-test.apps.googleusercontent.com",
+                  "client_secret": "test-secret"}
+        calls = []
+        def opener(req, timeout):
+            calls.append(parse_qs(req.data.decode("ascii")))
+            return Response({"error": "authorization_pending"})
+        self.assertEqual(auth.poll_device_code(client, "modern-device", opener=opener),
+                         ("authorization_pending", None))
+        self.assertEqual(calls[0]["device_code"], ["modern-device"])
+        self.assertNotIn("code", calls[0])
 
     def test_mismatched_scope_is_rejected(self):
         client = auth.read_client()
