@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+      - name: Run unit and source tests before publishing
+        run: python3 -m unittest discover -s tests -q
       - name: Build and validate stable IPK
         shell: bash
         run: |
@@ -31,12 +33,14 @@ jobs:
           pkg = root/'plugin/Plugins/Extensions/WarderYouTube'
           for p in pkg.rglob('*.py'):
               py_compile.compile(str(p), doraise=True, cfile='/tmp/'+p.name+'.pyc')
-          oauth_spec=importlib.util.spec_from_file_location('oauth_app',pkg/'oauth_app_config.py')
+          oauth_spec=importlib.util.spec_from_file_location('oauth_app',pkg/'tv_oauth_profile.py')
           oauth=importlib.util.module_from_spec(oauth_spec)
           oauth_spec.loader.exec_module(oauth)
           import re
-          assert re.fullmatch(r'[0-9A-Za-z._-]{8,200}\.apps\.googleusercontent\.com',oauth.OAUTH_TV_CLIENT_ID), 'Missing TV OAuth client'
-          assert isinstance(oauth.OAUTH_TV_CLIENT_SECRET,str) and bool(oauth.OAUTH_TV_CLIENT_SECRET), 'Missing TV OAuth client secret'
+          client=oauth.bundled_tv_client()
+          assert re.fullmatch(r'[0-9A-Za-z._-]{8,200}\.apps\.googleusercontent\.com',client['client_id']), 'Missing TV OAuth client'
+          assert isinstance(client['client_secret'],str) and bool(client['client_secret']), 'Missing TV OAuth client secret'
+          assert client['scope']=='https://www.googleapis.com/auth/youtube', 'Unexpected YouTube scope'
           spec=importlib.util.spec_from_file_location('update_core',pkg/'update_core.py')
           up=importlib.util.module_from_spec(spec)
           spec.loader.exec_module(up)
