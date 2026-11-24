@@ -93,12 +93,12 @@ class HomeTVLogin:
             return
         if self.device:
             self.home._show_details([
-                "YouTube / Google TV login",
+                "YouTube TV login · Taapat compatibility test",
                 _("Open on your phone or PC:"),
                 str(self.device["verification_url"]),
                 _("Enter this code exactly:"),
                 str(self.device["user_code"]),
-                _("Then confirm read-only YouTube access in Google."),
+                _("Confirm YouTube account access shown on Google."),
             ])
             self.home["status"].setText(_("Waiting for Google account authorization…"))
         else:
