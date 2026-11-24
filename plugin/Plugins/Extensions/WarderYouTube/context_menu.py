@@ -7,6 +7,7 @@ from Screens.Screen import Screen
 
 from .i18n import tr as _
 from .skin import CONTEXT_SKIN
+from .video_ratings import can_like
 
 
 class WarderYouTubeContext(Screen):
@@ -22,7 +23,6 @@ class WarderYouTubeContext(Screen):
             ("info", _("Video details")),
         ] if has_video or (video is not None and mode not in ("home", "subscriptions")) else [])
         # No account data or network call is needed to render MENU.
-        from .video_ratings import can_like
         signed_in = can_like()
         if has_video and signed_in:
             self.options.insert(2, ("like_youtube", _("Označiť Páči sa mi na YouTube")))
