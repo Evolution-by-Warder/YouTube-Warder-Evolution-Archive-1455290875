@@ -970,7 +970,9 @@ class WarderYouTubeHome(Screen):
             self._favourites_sync_error = False
         # Refresh only the active favourites section. Never interrupt videos
         # or change focus if the user is browsing Home, Odbery, or Search.
-        if self._mounted and self.index == 4 and not self._playback_active:
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
             self._update_preview()
 
     def _favourites_sync_failed(self, epoch, failure):
@@ -979,7 +981,9 @@ class WarderYouTubeHome(Screen):
         self._favourites_sync_pending = False
         self._favourites_sync_error = True
         # A temporary error must not clear locally saved favourites.
-        if self._mounted and self.index == 4 and not self._playback_active:
+        if (self._mounted and self.index == 4 and not self._playback_active
+                and not self._busy and not self._context_open
+                and not self._confirm_open):
             self._update_preview()
 
     def _local_items(self, kind):
