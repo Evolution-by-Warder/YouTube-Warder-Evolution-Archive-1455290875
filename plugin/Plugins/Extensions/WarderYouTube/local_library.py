@@ -13,10 +13,10 @@ from threading import Lock
 
 LIBRARY_PATH = Path("/etc/enigma2/warderyoutube-library.json")
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
-MAX_FILE_BYTES = 2 * 1024 * 1024
+MAX_FILE_BYTES = 5 * 1024 * 1024
 # Larger favourite capacity accommodates genuine YouTube account likes.
 # History remains small and receiver-local as before.
-LIMITS = {"favourites": 2000, "history": 100}
+LIMITS = {"favourites": 6000, "history": 100}
 _LOCK = Lock()
 
 
@@ -142,7 +142,7 @@ def merge_youtube_favourites(videos, path=LIBRARY_PATH):
         saved = _read(path)
         records = saved["favourites"]
         known = {item["video_id"] for item in records}
-        added = 0
+        fresh = []
         for raw in videos:
             try:
                 item = _video(raw)
@@ -150,15 +150,39 @@ def merge_youtube_favourites(videos, path=LIBRARY_PATH):
                 continue
             if item["video_id"] in known:
                 continue
-            if len(records) >= LIMITS["favourites"]:
-                break  # Never evict any saved local favourites during import.
+            if len(records) + len(fresh) >= LIMITS["favourites"]:
+                break  # Never evict existing local favourites during import.
             known.add(item["video_id"])
-            records.append(item)
-            added += 1
-        if added:
+            fresh.append(item)
+        if fresh:
+            # The remote liked playlist lists newest likes first. Keep new
+            # likes visible on page 1 while preserving the order and data of
+            # all existing favourites.
+            saved["favourites"] = fresh + records
             _write(path, saved)
-        return {"added": added, "total": len(records),
+        return {"added": len(fresh), "total": len(saved["favourites"]),
                 "capacity_reached": len(records) >= LIMITS["favourites"]}
+
+
+def save_confirmed_youtube_like(video, path=LIBRARY_PATH):
+    """Persist a successful YouTube Like in the first favourites position.
+
+    This operation never toggles an existing favourite OFF. It changes the
+    local file only after Google confirms the rating. It is intentionally
+    independent from the best-effort background YouTube playlist import.
+    """
+    item = _video(video)
+    with _LOCK:
+        path = Path(path)
+        saved = _read(path)
+        records = saved["favourites"]
+        if any(entry["video_id"] == item["video_id"] for entry in records):
+            return False
+        if len(records) >= LIMITS["favourites"]:
+            raise LibraryError("Lokálne Obľúbené sú plné.")
+        records.insert(0, item)
+        _write(path, saved)
+        return True
 
 
 def record_opened(video, path=LIBRARY_PATH):
