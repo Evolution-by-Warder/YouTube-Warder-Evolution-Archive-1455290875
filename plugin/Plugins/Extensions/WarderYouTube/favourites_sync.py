@@ -14,7 +14,8 @@ RECENT_API_PAGES = 20  # videos.list(myRating=like) is capped at 1,000.
 
 
 def sync_youtube_favourites(fetch_page=None,
-                            merge=merge_youtube_favourites, cancelled=None):
+                            merge=merge_youtube_favourites, cancelled=None,
+                            progress=None):
     """Fetch a bounded, deduplicated snapshot before one atomic local merge.
 
     If YouTube fails at any page, do not modify the receiver's favourites.
@@ -37,6 +38,7 @@ def sync_youtube_favourites(fetch_page=None,
     videos, identifiers, tokens = [], set(), set()
     next_page = ""
     truncated = False
+    first_page_added = 0
     for page_index in range(MAX_SYNC_PAGES if using_playlist else RECENT_API_PAGES):
         if cancelled is not None and cancelled.is_set():
             return {"cancelled": True, "added": 0}
@@ -59,6 +61,16 @@ def sync_youtube_favourites(fetch_page=None,
             if isinstance(identifier, str) and identifier not in identifiers:
                 identifiers.add(identifier)
                 videos.append(item)
+        if page_index == 0 and progress is not None and videos:
+            # Fast path: a 5,000-item playlist may require many API pages.
+            # Save the latest 50 likes immediately; the complete merge later
+            # remains ordered and deduplicated.
+            partial = merge(videos)
+            first_page_added = partial["added"]
+            try:
+                progress(partial)
+            except Exception:
+                pass  # Background sync must survive a closed GUI callback.
         next_token = page.get("next_page_token") or ""
         if not isinstance(next_token, str) or len(next_token) > 150:
             raise VideoRatingError("YouTube vrátil neplatné stránkovanie obľúbených.")
@@ -78,7 +90,7 @@ def sync_youtube_favourites(fetch_page=None,
     if cancelled is not None and cancelled.is_set():
         return {"cancelled": True, "added": 0}
     merged = merge(videos)
-    return {"added": merged["added"],
+    return {"added": merged["added"] + first_page_added,
             "total": merged["total"],
             "capacity_reached": merged["capacity_reached"],
             "truncated": truncated,
