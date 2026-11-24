@@ -13,8 +13,10 @@ from threading import Lock
 
 LIBRARY_PATH = Path("/etc/enigma2/warderyoutube-library.json")
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
-MAX_FILE_BYTES = 160 * 1024
-LIMITS = {"favourites": 200, "history": 100}
+MAX_FILE_BYTES = 2 * 1024 * 1024
+# Larger favourite capacity accommodates genuine YouTube account likes.
+# History remains small and receiver-local as before.
+LIMITS = {"favourites": 2000, "history": 100}
 _LOCK = Lock()
 
 
@@ -124,6 +126,39 @@ def toggle_favourite(video, path=LIBRARY_PATH):
             del records[LIMITS["favourites"]:]
         _write(path, saved)
         return added
+
+
+def merge_youtube_favourites(videos, path=LIBRARY_PATH):
+    """Import missing account likes into local favourites without evicting any.
+
+    Existing item order and metadata are unchanged. The source list may
+    contain repeated IDs, unavailable videos or malformed records; only
+    validated new videos are saved. Never write if the list is unchanged.
+    """
+    if not isinstance(videos, (list, tuple)):
+        raise LibraryError("Neplatný zoznam YouTube videí.")
+    with _LOCK:
+        path = Path(path)
+        saved = _read(path)
+        records = saved["favourites"]
+        known = {item["video_id"] for item in records}
+        added = 0
+        for raw in videos:
+            try:
+                item = _video(raw)
+            except LibraryError:
+                continue
+            if item["video_id"] in known:
+                continue
+            if len(records) >= LIMITS["favourites"]:
+                break  # Never evict any saved local favourites during import.
+            known.add(item["video_id"])
+            records.append(item)
+            added += 1
+        if added:
+            _write(path, saved)
+        return {"added": added, "total": len(records),
+                "capacity_reached": len(records) >= LIMITS["favourites"]}
 
 
 def record_opened(video, path=LIBRARY_PATH):
