@@ -3,7 +3,7 @@
 **Ostré vydanie – 24. novembra 2026**
 
 ## Novinky
-- Jednoduché prihlásenie do skutočného YouTube účtu pomocou TV kódu a automatické obnovenie uloženého prihlásenia.
+- Vylepšený autentifikačný kód, stabilita autorizácie a automatické obnovovanie relácie.
 - Sekcia **Odbery** zobrazuje osobné odbery prihláseného používateľa.
 - Pri vybranom videu pribudla v **MENU** akcia **Označiť Páči sa mi na YouTube**. Hodnotenie sa odošle do používateľovho účtu až po jeho výbere.
 - Úspešne označené video sa okamžite bezpečne uloží aj medzi miestne **Obľúbené**, bez duplicít alebo nechceného odobratia.
@@ -11,12 +11,12 @@
 - Najnovšie videá sa zobrazujú pred staršími, import zostáva atomický a neodstraňuje existujúce položky. Kapacita miestnych Obľúbených je 6 000 videí.
 - Pre väčšie účty sa plugin pokúsi použiť osobný playlist Páči sa mi, s bezpečným záložným načítavaním najnovších 1 000 videí, ak playlist nie je dostupný.
 - Pri sťahovaní veľkého zoznamu sa prvá stránka sprístupní priebežne; výpadok API, opakované stránkovanie alebo zatvorenie obrazovky nesmie vymazať existujúce údaje.
-- Opravené spracovanie TV kódu a opakovaných autorizácií; dočasná chyba siete neukončí platný kód predčasne.
+- Vylepšená spoľahlivosť autentifikácie pri dočasnom výpadku siete, bez zbytočného prerušovania platnej relácie.
 
 ## Zachované údaje a funkcie
 - **História** zostáva históriou prehrávania cez tento prijímač. Celú webovú históriu pozerania YouTube API nesprístupňuje.
 - Pôvodné miestne Obľúbené, ich názvy, história, nastavenia prehrávača a ostatné funkcie zostávajú zachované.
-- Pri aktualizácii z overenej testovacej verzie sa existujúce lokálne prihlásenie prenesie do produkčného úložiska, iba ak je dostupný jednoznačný bezpečný tokenový súbor.
+- Pri aktualizácii sa zachovávajú bezpečne uložené autentifikačné údaje a používateľské nastavenia, ak sú dostupné v platnom formáte.
 - Výsledné zdrojové kódy neobsahujú heslá používateľov ani ich osobné tokeny.
 
 ## Inštalácia

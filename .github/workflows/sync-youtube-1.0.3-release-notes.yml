@@ -1,0 +1,33 @@
+name: Correct published YouTube 1.0.3 release description
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'RELEASE_NOTES_1.0.3.md'
+      - '.github/workflows/sync-youtube-1.0.3-release-notes.yml'
+permissions:
+  contents: write
+jobs:
+  update-existing-release-description:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate corrected public release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -qx '# YouTube Warder Evolution 1.0.3' RELEASE_NOTES_1.0.3.md
+          grep -q 'Vylepšený autentifikačný kód' RELEASE_NOTES_1.0.3.md
+          if grep -Ei 'taapat|taaplak|nové prihlasovanie|new login' RELEASE_NOTES_1.0.3.md; then
+            echo 'Invalid wording in release notes' >&2
+            exit 1
+          fi
+      - name: Update text on existing published GitHub Release only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view youtube-warder-v1.0.3 >/dev/null
+          gh release edit youtube-warder-v1.0.3 --notes-file RELEASE_NOTES_1.0.3.md
+          gh release view youtube-warder-v1.0.3 --json body --jq '.body' | grep -q 'Vylepšený autentifikačný kód'
