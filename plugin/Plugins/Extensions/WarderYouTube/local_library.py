@@ -129,11 +129,12 @@ def toggle_favourite(video, path=LIBRARY_PATH):
 
 
 def merge_youtube_favourites(videos, path=LIBRARY_PATH):
-    """Import missing account likes into local favourites without evicting any.
+    """Merge actual YouTube Likes first, preserving all receiver-only favourites.
 
-    Existing item order and metadata are unchanged. The source list may
-    contain repeated IDs, unavailable videos or malformed records; only
-    validated new videos are saved. Never write if the list is unchanged.
+    The Likes playlist is ordered newest-to-oldest. Already-saved entries
+    retain their LOCAL metadata but follow the playlist's video order. Local
+    favourites not on YouTube remain in their previous relative order, and
+    nothing is ever deleted or evicted. Bad IDs are discarded safely.
     """
     if not isinstance(videos, (list, tuple)):
         raise LibraryError("Neplatný zoznam YouTube videí.")
@@ -141,28 +142,32 @@ def merge_youtube_favourites(videos, path=LIBRARY_PATH):
         path = Path(path)
         saved = _read(path)
         records = saved["favourites"]
-        known = {item["video_id"] for item in records}
-        fresh = []
+        old_ids = [x["video_id"] for x in records]
+        existing = {item["video_id"]: item for item in records}
+        ordered, seen = [], set()
+        added = 0
         for raw in videos:
             try:
                 item = _video(raw)
             except LibraryError:
                 continue
-            if item["video_id"] in known:
+            ident = item["video_id"]
+            if ident in seen:
                 continue
-            if len(records) + len(fresh) >= LIMITS["favourites"]:
-                break  # Never evict existing local favourites during import.
-            known.add(item["video_id"])
-            fresh.append(item)
-        if fresh:
-            # The remote liked playlist lists newest likes first. Keep new
-            # likes visible on page 1 while preserving the order and data of
-            # all existing favourites.
-            saved["favourites"] = fresh + records
+            if ident in existing:
+                ordered.append(existing[ident])  # Keep title and local metadata.
+                seen.add(ident)
+            elif len(records) + added < LIMITS["favourites"]:
+                ordered.append(item)
+                seen.add(ident)
+                added += 1
+        # Preserve all receiver-only items, with no remote removals.
+        ordered.extend(item for item in records if item["video_id"] not in seen)
+        if [x["video_id"] for x in ordered] != old_ids:
+            saved["favourites"] = ordered
             _write(path, saved)
-        return {"added": len(fresh), "total": len(saved["favourites"]),
-                "capacity_reached": len(saved["favourites"]) >= LIMITS["favourites"]}
-
+        return {"added": added, "total": len(ordered),
+                "capacity_reached": len(ordered) >= LIMITS["favourites"]}
 
 def save_confirmed_youtube_like(video, path=LIBRARY_PATH):
     """Persist a successful YouTube Like in the first favourites position.
