@@ -12,6 +12,7 @@ from .menu_compat import selected_index
 from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from twisted.internet.threads import deferToThread
+from threading import Event
 
 from .skin import LIBRARY_SKIN
 from .local_library import (
@@ -50,6 +51,7 @@ class WarderYouTubeLibrary(Screen):
         self.favourites_sync_busy = False
         self.favourites_sync_started = False
         self.favourites_sync_epoch = 0
+        self.favourites_sync_cancelled = Event()
 
         title = (_("Páči sa mi na YouTube") if kind == "youtube_likes"
                  else _("Favourites") if kind == "favourites" else _("History"))
@@ -95,6 +97,7 @@ class WarderYouTubeLibrary(Screen):
         self.disposed = True
         self.request_version += 1
         self.favourites_sync_epoch += 1
+        self.favourites_sync_cancelled.set()
 
     def on_show(self):
         """Keep local videos immediately visible; merge missing likes in a worker."""
@@ -117,7 +120,8 @@ class WarderYouTubeLibrary(Screen):
         epoch = self.favourites_sync_epoch
         self["status"].setText(_("Kontrolujem nové obľúbené z YouTube…"))
         try:
-            task = deferToThread(sync_youtube_favourites)
+            task = deferToThread(
+                sync_youtube_favourites, cancelled=self.favourites_sync_cancelled)
             task.addCallbacks(
                 lambda result: self.favourites_sync_ready(epoch, result),
                 lambda error: self.favourites_sync_failed(epoch, error))
@@ -128,6 +132,8 @@ class WarderYouTubeLibrary(Screen):
         if self.disposed or epoch != self.favourites_sync_epoch:
             return
         self.favourites_sync_busy = False
+        if isinstance(result, dict) and result.get("cancelled"):
+            return
         if not isinstance(result, dict):
             return self.favourites_sync_failed(epoch, None)
         added = result.get("added", 0)
