@@ -233,6 +233,29 @@ class OneWaySyncTests(unittest.TestCase):
         self.assertIn(video(1149)["video_id"],
                       {x["video_id"] for x in library.list_videos("favourites", self.path)})
 
+    def test_newest_like_is_saved_before_slow_remaining_pages_finish(self):
+        observations = []
+        def fetch(token):
+            if token == "":
+                return {"items": [video(101, title="KALI - NIEKEDY 2")],
+                        "next_page_token": "older"}
+            # The first remote page must already be in the local favourites
+            # before the slower second page is retrieved.
+            observations.append(library.list_videos("favourites", self.path))
+            return {"items": [video(23)], "next_page_token": ""}
+        def merge(rows):
+            return library.merge_youtube_favourites(rows, self.path)
+        progress_calls = []
+        result = sync.sync_youtube_favourites(
+            fetch_page=fetch, merge=merge, progress=lambda partial: progress_calls.append(partial))
+        self.assertEqual(len(progress_calls), 1)
+        self.assertEqual(progress_calls[0]["added"], 1)
+        self.assertEqual(observations[0][0]["title"], "KALI - NIEKEDY 2")
+        self.assertEqual(result["added"], 2)
+        final = library.list_videos("favourites", self.path)
+        self.assertEqual(final[0]["title"], "KALI - NIEKEDY 2")
+        self.assertEqual(len(final), 2)
+
     def test_unavailable_system_playlist_falls_back_to_recent_api(self):
         def recent(token):
             self.assertEqual(token, "")
