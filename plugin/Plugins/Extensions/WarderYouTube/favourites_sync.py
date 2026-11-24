@@ -12,7 +12,7 @@ MAX_SYNC_PAGES = 40  # 40 x 50 = 2000 entries max per refresh.
 
 
 def sync_youtube_favourites(fetch_page=liked_videos_page,
-                            merge=merge_youtube_favourites):
+                            merge=merge_youtube_favourites, cancelled=None):
     """Fetch a bounded, deduplicated snapshot before one atomic local merge.
 
     If YouTube fails at any page, do not modify the receiver's favourites.
@@ -23,6 +23,8 @@ def sync_youtube_favourites(fetch_page=liked_videos_page,
     next_page = ""
     truncated = False
     for page_index in range(MAX_SYNC_PAGES):
+        if cancelled is not None and cancelled.is_set():
+            return {"cancelled": True, "added": 0}
         page = fetch_page(next_page)
         if not isinstance(page, dict) or not isinstance(page.get("items"), list):
             raise VideoRatingError("YouTube vrátil neplatné údaje obľúbených.")
@@ -44,7 +46,10 @@ def sync_youtube_favourites(fetch_page=liked_videos_page,
         next_page = next_token
     else:
         truncated = bool(next_page)
-    # A full local collection is not altered; the merge routine never evicts.
+    # A closed screen cannot create a delayed local import. The merge itself
+    # remains an atomic operation protected by the local-library lock.
+    if cancelled is not None and cancelled.is_set():
+        return {"cancelled": True, "added": 0}
     merged = merge(videos)
     return {"added": merged["added"],
             "total": merged["total"],
