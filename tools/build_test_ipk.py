@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PKG_DIR = ROOT / "plugin/Plugins/Extensions/WarderYouTube"
 TARGET_PREFIX = "usr/lib/enigma2/python/Plugins/Extensions/WarderYouTube"
 PACKAGE = "enigma2-plugin-extensions-youtube-warder-evolution"
-VERSION = "1.0.2~test1"
+VERSION = "1.0.3~test1"
 FILENAME = "%s_%s_all.ipk" % (PACKAGE, VERSION)
 SENSITIVE = re.compile(rb"(?:AIza[0-9A-Za-z_-]{20,}|GOCSPX-[0-9A-Za-z_-]{20,})")
 
@@ -103,7 +103,7 @@ def build(output_dir):
         if source.name == "update_core.py":
             # Candidate must display its actual installed opkg version.
             # Leave the production source constant on main untouched.
-            stable_marker = b'CURRENT_VERSION = "1.0.2"'
+            stable_marker = b'CURRENT_VERSION = "1.0.3"'
             if content.count(stable_marker) != 1:
                 raise ValueError("Unexpected WarderYouTube version source")
             content = content.replace(

@@ -123,6 +123,71 @@ class InlineLoginTests(unittest.TestCase):
             self.assertTrue(timers[0].stopped)
             self.assertEqual(timers[0].callbacks, [])
 
+    def test_first_transient_poll_failure_does_not_hide_tv_code(self):
+        code = {
+            "device_code": "secret-private-device-code",
+            "user_code": "A1-B2-C3",
+            "verification_url": "https://www.google.com/device",
+            "expires_in": 600, "interval": 5,
+        }
+        mod, tasks, timers, modules = load()
+        home = Home()
+        with patch.dict(sys.modules, {"enigma": modules["enigma"]}):
+            login = mod.HomeTVLogin(home)
+            login.start()
+            tasks[0][1].success(({"client_id": "test"}, code))
+            timers[0].fire()
+            self.assertEqual(len(tasks), 2)
+            tasks[1][1].failure(mod.SubscriptionsAuthError("Google authorization service is unavailable."))
+            self.assertFalse(login.closed)
+            self.assertTrue(login.active)
+            self.assertIn("A1-B2-C3", home.details[-1])
+            self.assertEqual(timers[0].ms, 10000)
+            self.assertIn("Retrying", home.messages[-1])
+            login.close()
+            self.assertTrue(timers[0].stopped)
+
+    def test_rejected_application_stops_polling_and_shows_safe_reason(self):
+        code = {
+            "device_code": "private-device-code-example",
+            "user_code": "A1-B2-C3",
+            "verification_url": "https://www.google.com/device",
+            "expires_in": 600, "interval": 5
+        }
+        mod, tasks, timers, modules = load()
+        home = Home()
+        with patch.dict(sys.modules, {"enigma": modules["enigma"]}):
+            login = mod.HomeTVLogin(home)
+            login.start()
+            tasks[0][1].success(({"client_id": "test"}, code))
+            timers[0].fire()
+            tasks[1][1].failure(mod.SubscriptionsAuthError(
+                "Google rejected the YouTube TV login request."))
+            self.assertTrue(login.closed)
+            self.assertTrue(timers[0].stopped)
+            self.assertEqual(home.messages[-1],
+                             "Google rejected the YouTube TV login request.")
+
+    def test_temporary_server_reply_keeps_the_code_visible(self):
+        code = {
+            "device_code": "private-device-code-example",
+            "user_code": "A1-B2-C3",
+            "verification_url": "https://www.google.com/device",
+            "expires_in": 600, "interval": 5
+        }
+        mod, tasks, timers, modules = load()
+        home = Home()
+        with patch.dict(sys.modules, {"enigma": modules["enigma"]}):
+            login = mod.HomeTVLogin(home)
+            login.start()
+            tasks[0][1].success(({"client_id": "test"}, code))
+            timers[0].fire()
+            tasks[1][1].success(("temporary_error", None))
+            self.assertFalse(login.closed)
+            self.assertIn("A1-B2-C3", home.details[-1])
+            self.assertEqual(timers[0].ms, 10000)
+            login.close()
+
     def test_aborted_login_does_not_reuse_expired_device_callback(self):
         mod, tasks, timers, modules = load()
         home = Home()

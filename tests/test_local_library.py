@@ -57,7 +57,81 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(m.list_videos("history", self.path)[-1]["video_id"], "00000000005")
         for n in range(205):
             m.toggle_favourite(video(n), self.path)
-        self.assertEqual(len(m.list_videos("favourites", self.path)), 200)
+        self.assertEqual(len(m.list_videos("favourites", self.path)), 205)
+
+    def test_merge_liked_videos_preserves_local_favourites_and_history(self):
+        m.toggle_favourite(video(1, title="Local edited title"), self.path)
+        m.record_opened(video(3), self.path)
+        incoming = [video(2), video(1, title="Remote title"), video(2),
+                    video(4, video_id="not-a-video-id"), video(5)]
+        result = m.merge_youtube_favourites(incoming, self.path)
+        self.assertEqual(result["added"], 2)
+        saved = m.list_videos("favourites", self.path)
+        self.assertEqual([v["video_id"] for v in saved],
+                         [video(2)["video_id"], video(1)["video_id"], video(5)["video_id"]])
+        self.assertEqual(saved[1]["title"], "Local edited title")
+        self.assertEqual(len(m.list_videos("history", self.path)), 1)
+        self.assertNotIn("SECRET", self.path.read_text("utf-8"))
+        self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+        self.assertEqual(self.path.stat().st_mode & 0o777, 0o600)
+
+    def test_merge_capacity_never_evicts_local_items(self):
+        m.toggle_favourite(video(1), self.path)
+        incoming = [video(i) for i in range(2, m.LIMITS["favourites"] + 7)]
+        merged = m.merge_youtube_favourites(incoming, self.path)
+        self.assertEqual(merged["total"], m.LIMITS["favourites"])
+        self.assertTrue(merged["capacity_reached"])
+        saved = m.list_videos("favourites", self.path)
+        self.assertEqual(saved[-1]["video_id"], video(1)["video_id"])
+        self.assertIn(video(2)["video_id"], {v["video_id"] for v in saved})
+        self.assertNotIn(video(m.LIMITS["favourites"]+6)["video_id"],
+                         {v["video_id"] for v in saved})
+        self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+
+    def test_remote_latest_like_reorders_existing_video_without_overwriting(self):
+        m.toggle_favourite(video(1, title="KALI saved locally"), self.path)
+        m.toggle_favourite(video(2), self.path)
+        m.toggle_favourite(video(3), self.path)
+        before = m.list_videos("favourites", self.path)
+        self.assertEqual([x["video_id"] for x in before],
+                         [video(i)["video_id"] for i in (3, 2, 1)])
+        # The user's newest web Like (KALI) must rise to first page even
+        # if it was already saved in the receiver before the full import.
+        result = m.merge_youtube_favourites(
+            [video(1, title="Remote replacement"), video(3)], self.path)
+        self.assertEqual(result["added"], 0)
+        after = m.list_videos("favourites", self.path)
+        self.assertEqual([x["video_id"] for x in after],
+                         [video(i)["video_id"] for i in (1, 3, 2)])
+        self.assertEqual(after[0]["title"], "KALI saved locally")
+        original = self.path.read_bytes()
+        self.assertEqual(m.merge_youtube_favourites(
+            [video(1), video(3)], self.path)["added"], 0)
+        self.assertEqual(self.path.read_bytes(), original)
+
+    def test_confirmed_like_is_saved_at_front_without_toggling(self):
+        m.toggle_favourite(video(1), self.path)
+        m.merge_youtube_favourites([video(2)], self.path)
+        self.assertTrue(m.save_confirmed_youtube_like(video(3), self.path))
+        self.assertEqual([x["video_id"] for x in m.list_videos("favourites", self.path)],
+                         [video(3)["video_id"], video(2)["video_id"], video(1)["video_id"]])
+        before = self.path.read_bytes()
+        self.assertFalse(m.save_confirmed_youtube_like(video(3), self.path))
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertFalse(m.save_confirmed_youtube_like(video(2), self.path))
+        self.assertEqual(len(m.list_videos("favourites", self.path)), 3)
+
+    def test_confirmed_like_does_not_overwrite_corrupt_library(self):
+        self.path.write_text("{BROKEN", encoding="utf-8")
+        with self.assertRaises(m.LibraryError):
+            m.save_confirmed_youtube_like(video(17), self.path)
+        self.assertEqual(self.path.read_text("utf-8"), "{BROKEN")
+
+    def test_corrupt_library_is_not_overwritten_by_youtube_merge(self):
+        self.path.write_text("{BROKEN", encoding="utf-8")
+        with self.assertRaises(m.LibraryError):
+            m.merge_youtube_favourites([video(1)], self.path)
+        self.assertEqual(self.path.read_text("utf-8"), "{BROKEN")
 
     def test_remove_and_clear_affect_only_selected_list(self):
         m.record_opened(video(1), self.path)

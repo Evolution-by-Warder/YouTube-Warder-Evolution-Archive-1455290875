@@ -87,15 +87,15 @@ class ApprovedSourceTests(unittest.TestCase):
 
     def test_tv_oauth_client_is_configured_without_user_tokens(self):
         # Public TV app identity ships in the IPK; account tokens never do.
-        source=(SRC/'oauth_app_config.py').read_text()
-        self.assertIn('OAUTH_TV_CLIENT_ID = _read(', source)
-        self.assertIn('OAUTH_TV_CLIENT_SECRET = _read(', source)
+        source=(SRC/'tv_oauth_profile.py').read_text()
+        self.assertIn('TV_CLIENT_ID = get_key(', source)
+        self.assertIn('TV_CLIENT_SECRET = get_key(', source)
         self.assertNotIn('access_token', source)
         self.assertNotIn('refresh_token', source)
 
     def test_stable_runtime_and_legacy_test_builder_are_separate(self):
-        self.assertEqual(builder.VERSION,'1.0.2~test1')
-        self.assertIn('CURRENT_VERSION = "1.0.2"',(SRC/'update_core.py').read_text())
+        self.assertEqual(builder.VERSION,'1.0.3~test1')
+        self.assertIn('CURRENT_VERSION = "1.0.3"',(SRC/'update_core.py').read_text())
 
 
 class AccountLifecycleTests(unittest.TestCase):

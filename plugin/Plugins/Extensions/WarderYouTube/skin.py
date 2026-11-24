@@ -688,12 +688,14 @@ CONTEXT_SKIN = """
   <widget name="context_focus2" position="334,586" size="1250,72" font="Regular;27" backgroundColor="#126BA5" transparent="0" zPosition="3"/>
   <widget name="context_focus3" position="334,656" size="1250,72" font="Regular;27" backgroundColor="#126BA5" transparent="0" zPosition="3"/>
   <widget name="context_focus4" position="334,726" size="1250,72" font="Regular;27" backgroundColor="#126BA5" transparent="0" zPosition="3"/>
+  <widget name="context_focus5" position="334,797" size="1250,72" font="Regular;27" backgroundColor="#126BA5" transparent="0" zPosition="3"/>
     <widget name="context_row0" position="354,452" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
   <widget name="context_row1" position="354,522" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
   <widget name="context_row2" position="354,592" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
   <widget name="context_row3" position="354,663" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
   <widget name="context_row4" position="354,733" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
-  <widget name="hint" position="336,829" size="1230,60" font="Regular;28" foregroundColor="#B9D9F5" backgroundColor="#142C47" transparent="1"  zPosition="3"/>
+  <widget name="context_row5" position="354,804" size="1200,55" font="Regular;31" foregroundColor="#FFFFFF" backgroundColor="#122C47" transparent="1" zPosition="5"/>
+  <widget name="hint" position="336,891" size="1230,35" font="Regular;28" foregroundColor="#B9D9F5" backgroundColor="#142C47" transparent="1"  zPosition="3"/>
   <eLabel position="0,993" size="1920,87" backgroundColor="#08182D"/>
   <eLabel position="150,1070" size="195,3" backgroundColor="#FF526A" zPosition="5"/>
   <widget name="key_red" position="56,1020" size="381,45" font="Regular;29" foregroundColor="#FE637D" backgroundColor="#08182D" transparent="1" zPosition="6" halign="center"/>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Read-only YouTube TV OAuth device flow. No credentials shipped in the IPK.
+"""YouTube TV OAuth device flow. No account tokens shipped in the IPK.
 
 Network calls run in Enigma2 worker threads. A device flow is deliberately
 polled ONE request at a time by the UI timer, honoring the server interval.
@@ -17,12 +17,18 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
-CLIENT_PATH = Path("/etc/enigma2/warderyoutube-oauth-client.json")
-TOKEN_PATH = Path("/etc/enigma2/warderyoutube-oauth-token.json")
+CLIENT_PATH = Path("/etc/enigma2/warderyoutube-account-client.json")
+# Keep the current account separate from the previous read-only sign-in.
+TOKEN_PATH = Path("/etc/enigma2/warderyoutube-account-token.json")
 DEVICE_URL = "https://oauth2.googleapis.com/device/code"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 SCOPE = "https://www.googleapis.com/auth/youtube.readonly"
+FULL_SCOPE = "https://www.googleapis.com/auth/youtube"
+LEGACY_DEVICE_URL = "https://accounts.google.com/o/oauth2/device/code"
+LEGACY_TOKEN_URL = "https://accounts.google.com/o/oauth2/token"
+LEGACY_DEVICE_GRANT = "http://oauth.net/grant_type/device/1.0"
+CURRENT_DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 CLIENT_ID = re.compile(r"^[0-9A-Za-z._-]{8,200}\.apps\.googleusercontent\.com$")
 MAX_JSON = 64 * 1024
 _LOCK = threading.RLock()  # token refresh/save/logout must not race
@@ -54,6 +60,29 @@ def _read_private_json(path):
         raise SubscriptionsAuthError("OAuth account configuration is unavailable.")
 
 
+def _migrate_receiver_test_token(path):
+    """Preserve a user's existing private test sign-in on upgrade.
+
+    Only a single valid receiver test token file is eligible; read-only
+    account tokens from the prior application are never migrated. On
+    ambiguity or any read error keep all files unchanged.
+    """
+    target = Path(path)
+    if target != TOKEN_PATH or target.exists() or target.is_symlink():
+        return
+    try:
+        candidates = list(target.parent.glob("warderyoutube-*-test-token.json"))
+        if len(candidates) != 1:
+            return
+        data = _read_private_json(candidates[0])
+        if not isinstance(data.get("refresh_token"), str) or not data["refresh_token"]:
+            return
+        if not target.exists() and not target.is_symlink():
+            os.replace(str(candidates[0]), str(target))
+    except (OSError, SubscriptionsAuthError):
+        return
+
+
 def read_client(path=CLIENT_PATH):
     """Resolve developer's installed TV OAuth identity; never a user's key.
 
@@ -65,16 +94,25 @@ def read_client(path=CLIENT_PATH):
     if target.exists() or target.is_symlink():
         info = _read_private_json(target)
     else:
-        from .oauth_app_config import OAUTH_TV_CLIENT_ID, OAUTH_TV_CLIENT_SECRET
-        info = {"client_id": OAUTH_TV_CLIENT_ID,
-                "client_secret": OAUTH_TV_CLIENT_SECRET}
+        # Use the embedded TV profile without requiring any user API key.
+        # Previously saved read-only tokens stay separate.
+        from .tv_oauth_profile import bundled_tv_client
+        info = bundled_tv_client()
     client_id = info.get("client_id")
     secret = info.get("client_secret")
     if not isinstance(client_id, str) or not CLIENT_ID.fullmatch(client_id):
         raise SubscriptionsAuthError("YouTube TV sign-in is not configured by the plugin developer.")
     if not isinstance(secret, str) or len(secret) > 256 or not secret:
         raise SubscriptionsAuthError("Configure the matching Google OAuth TV client secret.")
-    return {"client_id": client_id, "client_secret": secret}
+    result = {"client_id": client_id, "client_secret": secret}
+    if not (target.exists() or target.is_symlink()):
+        # Known compatibility endpoints; never accept arbitrary token hosts
+        # from an external configuration file.
+        result.update({"scope": FULL_SCOPE,
+                       "device_url": LEGACY_DEVICE_URL,
+                       "token_url": LEGACY_TOKEN_URL,
+                       "device_grant": LEGACY_DEVICE_GRANT})
+    return result
 
 
 def _post(url, params, opener=urlopen):
@@ -107,8 +145,14 @@ def _post(url, params, opener=urlopen):
 
 
 def request_device_code(client, opener=urlopen):
-    response = _post(DEVICE_URL, {
-        "client_id": client["client_id"], "scope": SCOPE,
+    scope = client.get("scope", SCOPE)
+    if scope not in (SCOPE, FULL_SCOPE):
+        raise SubscriptionsAuthError("Invalid YouTube permission request.")
+    url = client.get("device_url", DEVICE_URL)
+    if url not in (DEVICE_URL, LEGACY_DEVICE_URL):
+        raise SubscriptionsAuthError("Invalid YouTube authorization endpoint.")
+    response = _post(url, {
+        "client_id": client["client_id"], "scope": scope,
     }, opener)
     try:
         device_code = response["device_code"]
@@ -130,30 +174,57 @@ def request_device_code(client, opener=urlopen):
 
 
 def poll_device_code(client, device_code, opener=urlopen):
-    response = _post(TOKEN_URL, {
-        "client_id": client["client_id"], "client_secret": client["client_secret"],
-        "device_code": device_code,
-        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-    }, opener)
+    url = client.get("token_url", TOKEN_URL)
+    grant = client.get("device_grant", CURRENT_DEVICE_GRANT)
+    if url not in (TOKEN_URL, LEGACY_TOKEN_URL) or grant not in (
+            CURRENT_DEVICE_GRANT, LEGACY_DEVICE_GRANT):
+        raise SubscriptionsAuthError("Invalid YouTube token endpoint.")
+    # The legacy TV OAuth endpoint takes the parameter "code";
+    # the current RFC device grant takes "device_code". Mixing these
+    # formats makes the FIRST poll fail and the TV code vanish after ~5 s.
+    token_parameters = {
+        "client_id": client["client_id"],
+        "client_secret": client["client_secret"],
+        "grant_type": grant,
+    }
+    token_parameters["code" if grant == LEGACY_DEVICE_GRANT else "device_code"] = device_code
+    response = _post(url, token_parameters, opener)
     error = response.get("error")
+    # The server's error code is never printed or inserted into the UI raw:
+    # classify pending/transient replies separately from permanent failures.
     if error in ("authorization_pending", "slow_down"):
         return error, None
+    if error in ("temporarily_unavailable", "server_error"):
+        return "temporary_error", None
+    if error in ("rate_limit_exceeded",):
+        return "slow_down", None
     if error == "access_denied":
         raise SubscriptionsAuthError("YouTube account access was denied.")
     if error == "expired_token":
         raise SubscriptionsAuthError("The YouTube login code has expired.")
+    if error in ("invalid_client", "unauthorized_client"):
+        raise SubscriptionsAuthError("Google rejected this YouTube TV application's sign-in.")
+    if error in ("invalid_request", "unsupported_grant_type"):
+        raise SubscriptionsAuthError("Google rejected the YouTube TV login request.")
+    if error in ("invalid_scope",):
+        raise SubscriptionsAuthError("Google rejected the requested YouTube permission.")
+    if error in ("invalid_grant",):
+        raise SubscriptionsAuthError("The YouTube login code is invalid. Start again.")
     if error:
-        raise SubscriptionsAuthError("YouTube authorization failed.")
-    return "connected", _normalize_tokens(response)
+        raise SubscriptionsAuthError("Google rejected the YouTube TV login.")
+    return "connected", _normalize_tokens(
+        response, required_scope=client.get("scope", SCOPE))
 
 
-def _normalize_tokens(response, old_refresh=None):
+def _normalize_tokens(response, old_refresh=None, required_scope=SCOPE):
     token = response.get("access_token")
     refresh = response.get("refresh_token") or old_refresh
-    scope = response.get("scope", SCOPE)
+    scope = response.get("scope", required_scope)
+    if required_scope not in (SCOPE, FULL_SCOPE):
+        raise SubscriptionsAuthError("Invalid YouTube permission request.")
     if (not isinstance(token, str) or not token or len(token) > 8192
             or not isinstance(refresh, str) or not refresh or len(refresh) > 8192
-            or not isinstance(scope, str) or SCOPE not in scope.split()):
+            or not isinstance(scope, str) or required_scope not in scope.split()):
         raise SubscriptionsAuthError("Read-only YouTube permission was not granted.")
     try:
         lifespan = int(response["expires_in"])
@@ -207,11 +278,13 @@ def _save_tokens_locked(tokens, path, cancelled=None):
 
 
 def account_connected(path=TOKEN_PATH):
-    try:
-        data = _read_private_json(path)
-    except SubscriptionsAuthError:
-        return False
-    return isinstance(data.get("refresh_token"), str) and bool(data["refresh_token"])
+    with _LOCK:
+        _migrate_receiver_test_token(path)
+        try:
+            data = _read_private_json(path)
+        except SubscriptionsAuthError:
+            return False
+        return isinstance(data.get("refresh_token"), str) and bool(data["refresh_token"])
 
 
 def clear_tokens(path=TOKEN_PATH):
@@ -231,6 +304,7 @@ def disconnect_account(path=TOKEN_PATH, opener=urlopen):
     Run solely in a worker, not on the Enigma2 GUI thread.
     """
     with _LOCK:
+        _migrate_receiver_test_token(path)
         return _disconnect_locked(path, opener)
 
 
@@ -265,6 +339,7 @@ def _disconnect_locked(path, opener):
 def access_token(client=None, path=TOKEN_PATH, opener=urlopen):
     """Refresh on demand. Never return an expired token to a Google API call."""
     with _LOCK:
+        _migrate_receiver_test_token(path)
         data = _read_private_json(path)
         try:
             expiry = int(data.get("expires_at") or 0)
@@ -278,7 +353,10 @@ def access_token(client=None, path=TOKEN_PATH, opener=urlopen):
         if not isinstance(refresh, str) or not refresh:
             raise SubscriptionsAuthError("Connect your YouTube account first.")
         credentials = client or read_client()
-        response = _post(TOKEN_URL, {
+        url = credentials.get("token_url", TOKEN_URL)
+        if url not in (TOKEN_URL, LEGACY_TOKEN_URL):
+            raise SubscriptionsAuthError("Invalid YouTube token endpoint.")
+        response = _post(url, {
             "client_id": credentials["client_id"],
             "client_secret": credentials["client_secret"],
             "refresh_token": refresh, "grant_type": "refresh_token",
@@ -287,6 +365,8 @@ def access_token(client=None, path=TOKEN_PATH, opener=urlopen):
             raise ReauthorizationRequired("YouTube authorization expired. Connect the account again.")
         if response.get("error"):
             raise SubscriptionsAuthError("Google authorization service is unavailable.")
-        updated = _normalize_tokens(response, old_refresh=refresh)
+        updated = _normalize_tokens(
+            response, old_refresh=refresh,
+            required_scope=credentials.get("scope", SCOPE))
         save_tokens(updated, path=path)
         return updated["access_token"]

@@ -13,8 +13,10 @@ from threading import Lock
 
 LIBRARY_PATH = Path("/etc/enigma2/warderyoutube-library.json")
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
-MAX_FILE_BYTES = 160 * 1024
-LIMITS = {"favourites": 200, "history": 100}
+MAX_FILE_BYTES = 5 * 1024 * 1024
+# Larger favourite capacity accommodates genuine YouTube account likes.
+# History remains small and receiver-local as before.
+LIMITS = {"favourites": 6000, "history": 100}
 _LOCK = Lock()
 
 
@@ -124,6 +126,68 @@ def toggle_favourite(video, path=LIBRARY_PATH):
             del records[LIMITS["favourites"]:]
         _write(path, saved)
         return added
+
+
+def merge_youtube_favourites(videos, path=LIBRARY_PATH):
+    """Merge actual YouTube Likes first, preserving all receiver-only favourites.
+
+    The Likes playlist is ordered newest-to-oldest. Already-saved entries
+    retain their LOCAL metadata but follow the playlist's video order. Local
+    favourites not on YouTube remain in their previous relative order, and
+    nothing is ever deleted or evicted. Bad IDs are discarded safely.
+    """
+    if not isinstance(videos, (list, tuple)):
+        raise LibraryError("Neplatný zoznam YouTube videí.")
+    with _LOCK:
+        path = Path(path)
+        saved = _read(path)
+        records = saved["favourites"]
+        old_ids = [x["video_id"] for x in records]
+        existing = {item["video_id"]: item for item in records}
+        ordered, seen = [], set()
+        added = 0
+        for raw in videos:
+            try:
+                item = _video(raw)
+            except LibraryError:
+                continue
+            ident = item["video_id"]
+            if ident in seen:
+                continue
+            if ident in existing:
+                ordered.append(existing[ident])  # Keep title and local metadata.
+                seen.add(ident)
+            elif len(records) + added < LIMITS["favourites"]:
+                ordered.append(item)
+                seen.add(ident)
+                added += 1
+        # Preserve all receiver-only items, with no remote removals.
+        ordered.extend(item for item in records if item["video_id"] not in seen)
+        if [x["video_id"] for x in ordered] != old_ids:
+            saved["favourites"] = ordered
+            _write(path, saved)
+        return {"added": added, "total": len(ordered),
+                "capacity_reached": len(ordered) >= LIMITS["favourites"]}
+
+def save_confirmed_youtube_like(video, path=LIBRARY_PATH):
+    """Persist a successful YouTube Like in the first favourites position.
+
+    This operation never toggles an existing favourite OFF. It changes the
+    local file only after Google confirms the rating. It is intentionally
+    independent from the best-effort background YouTube playlist import.
+    """
+    item = _video(video)
+    with _LOCK:
+        path = Path(path)
+        saved = _read(path)
+        records = saved["favourites"]
+        if any(entry["video_id"] == item["video_id"] for entry in records):
+            return False
+        if len(records) >= LIMITS["favourites"]:
+            raise LibraryError("Lokálne Obľúbené sú plné.")
+        records.insert(0, item)
+        _write(path, saved)
+        return True
 
 
 def record_opened(video, path=LIBRARY_PATH):
