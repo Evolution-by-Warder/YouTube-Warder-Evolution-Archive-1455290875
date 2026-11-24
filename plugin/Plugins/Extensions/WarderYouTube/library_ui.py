@@ -186,13 +186,13 @@ class WarderYouTubeLibrary(Screen):
         item = self._selected()
         if item is None:
             return
-        from .video_ratings import like_video
+        from .video_ratings import like_and_save
         self.busy = True
         self.request_version += 1
         version = self.request_version
         self["status"].setText(_("Odosielam Páči sa mi na YouTube…"))
         try:
-            task = deferToThread(like_video, item["video_id"])
+            task = deferToThread(like_and_save, dict(item))
             task.addCallbacks(lambda saved: self.like_ready(version, saved),
                               lambda err: self.like_failed(version, err))
         except Exception:
@@ -202,9 +202,15 @@ class WarderYouTubeLibrary(Screen):
         if self.disposed or version != self.request_version:
             return
         self.busy = False
+        success = isinstance(saved, dict) and saved.get("liked")
+        local = success and saved.get("local_saved")
+        if local and self.kind == "favourites":
+            self.refresh()
         self["status"].setText(
-            _("Video označené Páči sa mi na YouTube.")
-            if saved is True else _("YouTube nepotvrdil hodnotenie videa.")
+            _("Video označené Páči sa mi na YouTube. Uložené aj do Obľúbených.")
+            if local else
+            _("Páči sa mi na YouTube bolo potvrdené, ale miestne uloženie zlyhalo.")
+            if success else _("YouTube nepotvrdil hodnotenie videa.")
         )
 
     def like_failed(self, version, failure):
