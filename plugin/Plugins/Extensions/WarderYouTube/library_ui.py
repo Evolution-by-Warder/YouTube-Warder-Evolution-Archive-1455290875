@@ -33,7 +33,7 @@ class WarderYouTubeLibrary(Screen):
     skin = LIBRARY_SKIN
 
     def __init__(self, session, kind):
-        if kind not in ("favourites", "history", "youtube_likes"):
+        if kind not in ("favourites", "history"):
             raise ValueError("Unknown video library")
         Screen.__init__(self, session)
         add_header(self)
@@ -44,36 +44,27 @@ class WarderYouTubeLibrary(Screen):
         self.disposed = False
         self.confirmation_open = False
         self.request_version = 0
-        self.likes_page_token = ""
-        self.likes_previous_tokens = []
-        self.likes_next_token = ""
-        self.likes_loaded = False
         self.favourites_sync_busy = False
         self.favourites_sync_started = False
         self.favourites_sync_epoch = 0
         self.favourites_sync_cancelled = Event()
 
-        title = (_("Páči sa mi na YouTube") if kind == "youtube_likes"
-                 else _("Favourites") if kind == "favourites" else _("History"))
+        title = _("Favourites") if kind == "favourites" else _("History")
         self["title"] = Label("YouTube Warder Evolution / " + title)
         self["subtitle"] = Label("")
         self["key_red"] = Label(_("Back"))
         self["key_green"] = Label(_("Play video"))
         self["key_yellow"] = Label(
-            _("Predchádzajúca strana") if kind == "youtube_likes"
-            else _("Remove video from favourites") if kind == "favourites"
+            _("Remove video from favourites") if kind == "favourites"
             else _("Delete video from history")
         )
         self["key_blue"] = Label(
-            _("Ďalšia strana") if kind == "youtube_likes"
-            else _("Clear all favourite videos") if kind == "favourites"
+            _("Clear all favourite videos") if kind == "favourites"
             else _("Clear entire history")
         )
         self["results"] = MenuList([])
         self["status"] = Label("")
         self["footer"] = Label(
-            _("OK: prehrať · MENU: akcie · ŽLTÉ: späť · MODRÉ: ďalšia strana · EXIT: obľúbené")
-            if kind == "youtube_likes" else
             _("OK: play · INFO: details · MENU: actions · YELLOW: remove favourite · BLUE: clear favourites · EXIT: home")
             if kind == "favourites" else
             _("OK: play · INFO: details · MENU: actions · YELLOW: delete from history · BLUE: clear history · EXIT: home")
@@ -83,9 +74,8 @@ class WarderYouTubeLibrary(Screen):
             {
                 "ok": self.play_selected, "info": self.show_info,
                 "menu": self.open_actions, "green": self.play_selected,
-                "yellow": self.previous_likes_page if kind == "youtube_likes" else self.remove_selected,
-                "blue": self.next_likes_page if kind == "youtube_likes" else self.confirm_clear,
-                "cancel": self.close,
+                "yellow": self.remove_selected,
+                "blue": self.confirm_clear, "cancel": self.close,
                 "red": self.close
             }, -1
         )
@@ -168,10 +158,6 @@ class WarderYouTubeLibrary(Screen):
     def refresh(self):
         if self.disposed or self.busy or self.playback_active:
             return
-        if self.kind == "youtube_likes":
-            if not self.likes_loaded:
-                self.request_likes_page()
-            return
         try:
             items = list_videos(self.kind)
         except LibraryError as error:
@@ -193,76 +179,6 @@ class WarderYouTubeLibrary(Screen):
             _("História je prázdna. Otvor video z výsledkov hľadania.")
             if not items else _("Vyber video a stlač OK. Prehrávanie nepotrebuje API kľúč.")
         )
-
-
-    def request_likes_page(self):
-        """Read account likes in a worker, never on the Enigma2 GUI thread."""
-        if (self.kind != "youtube_likes" or self.disposed
-                or self.busy or self.playback_active):
-            return
-        from .video_ratings import liked_videos_page
-        self.busy = True
-        self.request_version += 1
-        version = self.request_version
-        self["status"].setText(_("Načítavam videá Páči sa mi z YouTube…"))
-        try:
-            task = deferToThread(liked_videos_page, self.likes_page_token)
-            task.addCallbacks(lambda payload: self.likes_ready(version, payload),
-                              lambda err: self.likes_failed(version, err))
-        except Exception:
-            self.likes_failed(version, None)
-
-    def likes_ready(self, version, payload):
-        if self.disposed or version != self.request_version:
-            return
-        self.busy = False
-        if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
-            return self.likes_failed(version, None)
-        self.video_items = list(payload["items"])
-        self.likes_next_token = payload.get("next_page_token") or ""
-        self.likes_loaded = True
-        self["results"].setList([
-            "%s   |   %s" % ((item["title"] or "YouTube video")[:93],
-                           (item["channel"] or "")[:50])
-            for item in self.video_items
-        ])
-        self["subtitle"].setText(_("Páči sa mi na YouTube") +
-                                 ": %d   ·   %d videí" % (
-                                     len(self.likes_previous_tokens) + 1,
-                                     len(self.video_items)))
-        self["status"].setText(
-            _("Žiadne hodnotené videá na tejto stránke.")
-            if not self.video_items else
-            _("OK: prehrať · MENU: akcie · MODRÉ: ďalšia strana")
-        )
-
-    def likes_failed(self, version, failure):
-        if self.disposed or version != self.request_version:
-            return
-        self.busy = False
-        error = getattr(failure, "value", failure)
-        from .video_ratings import VideoRatingError
-        self["status"].setText(
-            str(error) if isinstance(error, VideoRatingError)
-            else _("Nepodarilo sa načítať Páči sa mi z YouTube.")
-        )
-
-    def next_likes_page(self):
-        if (self.kind != "youtube_likes" or self.busy or self.disposed
-                or not self.likes_next_token):
-            return
-        self.likes_previous_tokens.append(self.likes_page_token)
-        self.likes_page_token = self.likes_next_token
-        self.likes_loaded = False
-        self.request_likes_page()
-
-    def previous_likes_page(self):
-        if (self.kind != "youtube_likes" or self.busy or self.disposed
-                or not self.likes_previous_tokens):
-            return
-        self.likes_page_token = self.likes_previous_tokens.pop()
-        self.likes_loaded = False
-        self.request_likes_page()
 
     def like_selected(self):
         if self.disposed or self.busy or self.playback_active:
@@ -373,14 +289,9 @@ class WarderYouTubeLibrary(Screen):
         if item is None or self.busy or self.playback_active:
             return
         from .context_menu import WarderYouTubeContext
-        try:
-            saved = any(x["video_id"] == item["video_id"]
-                        for x in list_videos("favourites"))
-        except LibraryError:
-            saved = False
         self.session.openWithCallback(
             self.action_selected, WarderYouTubeContext, item,
-            saved, self.kind)
+            self.kind == "favourites", self.kind)
 
     def action_selected(self, action):
         if self.disposed:
@@ -391,8 +302,6 @@ class WarderYouTubeLibrary(Screen):
             self.save_favourite()
         elif action == "like_youtube":
             self.like_selected()
-        elif action == "youtube_likes":
-            self.session.open(WarderYouTubeLibrary, "youtube_likes")
         elif action == "info":
             self.show_info()
         elif action == "remove":
@@ -418,7 +327,7 @@ class WarderYouTubeLibrary(Screen):
             self["status"].setText(str(error))
 
     def remove_selected(self):
-        if self.kind == "youtube_likes" or self.busy or self.playback_active:
+        if self.busy or self.playback_active:
             return
         item = self._selected()
         if item is None:
@@ -435,8 +344,6 @@ class WarderYouTubeLibrary(Screen):
             self["status"].setText(str(error))
 
     def confirm_clear(self):
-        if self.kind == "youtube_likes":
-            return
         if (self.disposed or self.busy or self.playback_active
                 or self.confirmation_open or not self.video_items):
             return
@@ -453,7 +360,7 @@ class WarderYouTubeLibrary(Screen):
 
     def clear_confirmed(self, confirmed):
         self.confirmation_open = False
-        if self.disposed or not confirmed or self.kind == "youtube_likes":
+        if self.disposed or not confirmed:
             return
         try:
             clear_videos(self.kind)
