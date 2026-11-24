@@ -10,9 +10,11 @@ import re
 MAX_CHANNELS = 500
 MAX_LABEL_LENGTH = 21
 CHANNEL_ID = re.compile(r"^UC[A-Za-z0-9_-]{22}$")
+PLAYLIST_ID = re.compile(r"^[A-Za-z0-9_-]{10,64}$")
+MAX_USER_PLAYLISTS = 100
 
 
-def subscription_chips(channels, connected=False):
+def subscription_chips(channels, connected=False, playlists=()):
     """Make horizontal chips from read-only Google subscriptions.list results."""
     if not connected:
         return []
@@ -22,6 +24,30 @@ def subscription_chips(channels, connected=False):
         "label": "Najnovšie",
         "title": "Najnovšie z odberov (výber kanálov)",
     }]
+
+    # Genuine per-account playlists appear before hundreds of subscriptions,
+    # so users can find their own lists without a new main-menu entry.
+    seen_playlists = set()
+    for entry in (playlists or ())[:MAX_USER_PLAYLISTS]:
+        if not isinstance(entry, dict):
+            continue
+        identifier = entry.get("playlist_id")
+        title = " ".join(str(entry.get("title") or "").split())[:160]
+        if (not isinstance(identifier, str)
+                or not PLAYLIST_ID.fullmatch(identifier)
+                or identifier in seen_playlists or not title):
+            continue
+        seen_playlists.add(identifier)
+        label = "PL: " + title
+        label = (label if len(label) <= MAX_LABEL_LENGTH
+                 else label[:MAX_LABEL_LENGTH - 1].rstrip() + "…")
+        chips.append({
+            "id": "playlist:" + identifier,
+            "kind": "playlist",
+            "label": label,
+            "title": "Môj YouTube playlist: " + title,
+            "playlist_id": identifier,
+        })
     seen = set()
     for item in channels[:MAX_CHANNELS]:
         if not isinstance(item, dict):
