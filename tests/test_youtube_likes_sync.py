@@ -147,6 +147,23 @@ class OneWaySyncTests(unittest.TestCase):
                 merge=lambda rows: library.merge_youtube_favourites(rows, self.path))
         self.assertEqual(self.path.read_bytes(), original)
 
+    def test_screen_close_cancels_before_writing_local_favourites(self):
+        from threading import Event
+        library.toggle_favourite(video(1), self.path)
+        original = self.path.read_bytes()
+        cancelled = Event()
+        called = []
+        def fetch(token):
+            called.append(token)
+            cancelled.set()
+            return {"items": [video(2)], "next_page_token": ""}
+        out = sync.sync_youtube_favourites(
+            fetch_page=fetch, cancelled=cancelled,
+            merge=lambda rows: library.merge_youtube_favourites(rows, self.path))
+        self.assertTrue(out["cancelled"])
+        self.assertEqual(called, [""])
+        self.assertEqual(self.path.read_bytes(), original)
+
     def test_repeat_page_token_never_loops_or_writes(self):
         calls = []
         def fetch(token):
