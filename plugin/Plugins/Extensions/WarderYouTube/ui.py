@@ -1677,7 +1677,7 @@ class WarderYouTubeHome(Screen):
 
     def context(self):
         item = self.selected_video()
-        if ((item is None and self.index not in (0, 2))
+        if ((item is None and self.index not in (0, 2, 4))
                 or self._context_open or self._quick_select_open
                 or self._busy or self._playback_active or self._disposed):
             return
@@ -1688,6 +1688,10 @@ class WarderYouTubeHome(Screen):
                 "favourites" if self.index == 4 else "search")
         saved = any(v["video_id"] == item.get("video_id")
                     for v in self._local_items("favourites")) if item else False
+        if item is None and self.index == 4:
+            from .video_ratings import can_like
+            if not can_like():
+                return
         self._context_open = True
         try:
             self.session.openWithCallback(
@@ -1771,6 +1775,10 @@ class WarderYouTubeHome(Screen):
                 self.session.openWithCallback(self._disconnect_confirmed,
                     WarderYouTubeConfirm, _("Disconnect YouTube account") + "?")
             return
+        if action == "youtube_likes":
+            from .library_ui import WarderYouTubeLibrary
+            self.session.open(WarderYouTubeLibrary, "youtube_likes")
+            return
         if item is None and action not in ("search",):
             return
         if action == "play":
@@ -1779,6 +1787,8 @@ class WarderYouTubeHome(Screen):
             self.info()
         elif action == "search":
             self._open_index(1)
+        elif action == "like_youtube":
+            self._like_youtube(item)
         elif action == "favorite":
             try:
                 toggle_favourite(item)
@@ -1801,6 +1811,43 @@ class WarderYouTubeHome(Screen):
                 (_("Clear all favourite videos") if self.index == 4
                  else _("Clear entire history")) + "?"
             )
+
+    def _like_youtube(self, item):
+        """Rate the explicitly chosen video, never in a GUI callback."""
+        if self._disposed or self._busy or self._playback_active:
+            return
+        from .video_ratings import like_video
+        self._busy = True
+        self._play_request += 1
+        version = self._play_request
+        self["status"].setText(_("Odosielam Páči sa mi na YouTube…"))
+        try:
+            task = deferToThread(like_video, item["video_id"])
+            task.addCallbacks(
+                lambda saved: self._like_youtube_ready(version, saved),
+                lambda err: self._like_youtube_failed(version, err))
+        except Exception:
+            self._like_youtube_failed(version, None)
+
+    def _like_youtube_ready(self, version, saved):
+        if self._disposed or version != self._play_request:
+            return
+        self._busy = False
+        self["status"].setText(
+            _("Video označené Páči sa mi na YouTube.")
+            if saved is True else _("YouTube nepotvrdil hodnotenie videa.")
+        )
+
+    def _like_youtube_failed(self, version, failure):
+        if self._disposed or version != self._play_request:
+            return
+        self._busy = False
+        error = getattr(failure, "value", failure)
+        from .video_ratings import VideoRatingError
+        self["status"].setText(
+            str(error) if isinstance(error, VideoRatingError)
+            else _("Nepodarilo sa označiť Páči sa mi.")
+        )
 
     def _disconnect_confirmed(self, confirmed):
         self._confirm_open = False
