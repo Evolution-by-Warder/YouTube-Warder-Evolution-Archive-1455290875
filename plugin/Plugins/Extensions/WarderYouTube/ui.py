@@ -61,7 +61,7 @@ def _discover_home_subscriptions():
     """
     try:
         from .subscriptions_auth import account_connected, access_token, ReauthorizationRequired
-        from .subscriptions_api import subscriptions_list
+        from .subscriptions_api import subscriptions_list, user_playlists_list, SubscriptionsApiError
         if not account_connected():
             return {"connected": False, "channels": []}
         token = access_token()
@@ -73,7 +73,14 @@ def _discover_home_subscriptions():
         response = subscriptions_list(token, limit=500, with_metadata=True)
     except Exception:
         return {"connected": True, "channels": [], "load_error": True}
+    # A playlist permission/API outage must not hide healthy subscriptions.
+    try:
+        playlists = user_playlists_list(token)
+        playlists_error = False
+    except SubscriptionsApiError:
+        playlists, playlists_error = [], True
     return {"connected": True, "channels": response["channels"],
+            "playlists": playlists, "playlists_error": playlists_error,
             "truncated": bool(response.get("truncated"))}
 
 
@@ -88,6 +95,10 @@ def _load_personal_channel_videos(chip, all_channels=(), batch_index=0):
     from .subscriptions_api import (uploads_playlists, playlist_videos,
                                     SubscriptionsApiError)
     token = access_token()
+    if chip.get("kind") == "playlist":
+        # Actual playlists belonging to the signed-in account. Keep the
+        # ordering returned by the official playlistItems endpoint.
+        return playlist_videos(chip.get("playlist_id"), token, limit=200)
     recent = chip.get("kind") == "recent"
     if recent:
         # One bounded request at a time. Visit all followed channels in groups
@@ -536,7 +547,8 @@ class WarderYouTubeHome(Screen):
                          else sub_id)
         self._subscriptions_connected = bool(data.get("connected"))
         new_subs = subscription_chips(self._home_channels,
-                                      connected=self._subscriptions_connected)
+                                      connected=self._subscriptions_connected,
+                                      playlists=data.get("playlists") or ())
         sub_lookup = {chip["id"]: i for i, chip in enumerate(new_subs)}
         if [chip["id"] for chip in new_subs] != [
                 chip["id"] for chip in self._subscription_chips]:
@@ -648,6 +660,7 @@ class WarderYouTubeHome(Screen):
         selected = chip["id"]
         self._show_message(
             "Loading YouTube category…" if chip.get("kind") == "live"
+            else "Loading your YouTube playlist…" if chip.get("kind") == "playlist"
             else "Loading subscribed channels…")
         self._render_categories()
         try:
