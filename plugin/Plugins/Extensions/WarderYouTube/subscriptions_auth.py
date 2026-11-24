@@ -167,14 +167,28 @@ def poll_device_code(client, device_code, opener=urlopen):
     token_parameters["code" if grant == LEGACY_DEVICE_GRANT else "device_code"] = device_code
     response = _post(url, token_parameters, opener)
     error = response.get("error")
+    # The server's error code is never printed or inserted into the UI raw:
+    # classify pending/transient replies separately from permanent failures.
     if error in ("authorization_pending", "slow_down"):
         return error, None
+    if error in ("temporarily_unavailable", "server_error"):
+        return "temporary_error", None
+    if error in ("rate_limit_exceeded",):
+        return "slow_down", None
     if error == "access_denied":
         raise SubscriptionsAuthError("YouTube account access was denied.")
     if error == "expired_token":
         raise SubscriptionsAuthError("The YouTube login code has expired.")
+    if error in ("invalid_client", "unauthorized_client"):
+        raise SubscriptionsAuthError("Google rejected this YouTube TV application's sign-in.")
+    if error in ("invalid_request", "unsupported_grant_type"):
+        raise SubscriptionsAuthError("Google rejected the YouTube TV login request.")
+    if error in ("invalid_scope",):
+        raise SubscriptionsAuthError("Google rejected the requested YouTube permission.")
+    if error in ("invalid_grant",):
+        raise SubscriptionsAuthError("The YouTube login code is invalid. Start again.")
     if error:
-        raise SubscriptionsAuthError("YouTube authorization failed.")
+        raise SubscriptionsAuthError("Google rejected the YouTube TV login.")
     return "connected", _normalize_tokens(
         response, required_scope=client.get("scope", SCOPE))
 
