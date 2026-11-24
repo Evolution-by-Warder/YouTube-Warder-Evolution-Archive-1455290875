@@ -93,12 +93,12 @@ class HomeTVLogin:
             return
         if self.device:
             self.home._show_details([
-                "YouTube / Google TV login",
+                _("Prihlásenie do YouTube"),
                 _("Open on your phone or PC:"),
                 str(self.device["verification_url"]),
                 _("Enter this code exactly:"),
                 str(self.device["user_code"]),
-                _("Then confirm read-only YouTube access in Google."),
+                _("Confirm YouTube account access shown on Google."),
             ])
             self.home["status"].setText(_("Waiting for Google account authorization…"))
         else:
@@ -136,15 +136,33 @@ class HomeTVLogin:
             self._failed(epoch, "YouTube TV login is unavailable.")
 
     def _poll_failed(self, epoch, failure):
+        if not self._current(epoch):
+            return
+        self.polling = False
         error = getattr(failure, "value", failure)
-        safe = {
+        message = str(error) if isinstance(error, SubscriptionsAuthError) else ""
+        # Keep an issued code on confirmed temporary transport failures only.
+        # A rejected client, scope, token, or malformed response is terminal;
+        # silently retrying these errors would hide a broken login indefinitely.
+        if message == "Google authorization service is unavailable.":
+            self.interval = min(max(self.interval + 5, 10), 60)
+            self.show_details()
+            self.home["status"].setText(_(
+                "Temporary connection problem. Retrying YouTube login…"))
+            self._schedule()
+            return
+        safe_errors = {
             "YouTube account access was denied.",
             "The YouTube login code has expired.",
             "Read-only YouTube permission was not granted.",
-            "Google authorization service is unavailable.",
+            "Google rejected this YouTube TV application's sign-in.",
+            "Google rejected the YouTube TV login request.",
+            "Google rejected the requested YouTube permission.",
+            "The YouTube login code is invalid. Start again.",
+            "Google rejected the YouTube TV login.",
         }
-        message = str(error) if isinstance(error, SubscriptionsAuthError) else ""
-        self._failed(epoch, message if message in safe else "YouTube TV login failed.")
+        self._failed(epoch, message if message in safe_errors
+                     else "YouTube TV login failed.")
 
     def _poll_ready(self, epoch, result):
         if not self._current(epoch):
@@ -155,6 +173,10 @@ class HomeTVLogin:
             self.interval = min(self.interval + 5, 60)
             self._schedule()
         elif state == "authorization_pending":
+            self._schedule()
+        elif state == "temporary_error":
+            self.interval = min(max(self.interval + 5, 10), 60)
+            self.home["status"].setText(_("YouTube login is temporarily unavailable. Retrying…"))
             self._schedule()
         elif state == "connected" and isinstance(tokens, dict):
             try:
