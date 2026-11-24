@@ -1677,7 +1677,7 @@ class WarderYouTubeHome(Screen):
 
     def context(self):
         item = self.selected_video()
-        if ((item is None and self.index not in (0, 2, 4))
+        if ((item is None and self.index not in (0, 2))
                 or self._context_open or self._quick_select_open
                 or self._busy or self._playback_active or self._disposed):
             return
@@ -1688,10 +1688,6 @@ class WarderYouTubeHome(Screen):
                 "favourites" if self.index == 4 else "search")
         saved = any(v["video_id"] == item.get("video_id")
                     for v in self._local_items("favourites")) if item else False
-        if item is None and self.index == 4:
-            from .video_ratings import can_like
-            if not can_like():
-                return
         self._context_open = True
         try:
             self.session.openWithCallback(
@@ -1774,10 +1770,6 @@ class WarderYouTubeHome(Screen):
                 self._confirm_open = True
                 self.session.openWithCallback(self._disconnect_confirmed,
                     WarderYouTubeConfirm, _("Disconnect YouTube account") + "?")
-            return
-        if action == "youtube_likes":
-            from .library_ui import WarderYouTubeLibrary
-            self.session.open(WarderYouTubeLibrary, "youtube_likes")
             return
         if item is None and action not in ("search",):
             return
