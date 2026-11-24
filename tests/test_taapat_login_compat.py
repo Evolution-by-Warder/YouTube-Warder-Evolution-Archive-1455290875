@@ -33,9 +33,7 @@ class Response(io.BytesIO):
 class TVCompatibilityTests(unittest.TestCase):
     def test_embedded_profile_is_usable_without_receivers_api_file(self):
         client = auth.read_client()
-        self.assertTrue(re.fullmatch(
-            r"[0-9A-Za-z._-]{8,200}\\.apps\\.googleusercontent\\.com",
-            client["client_id"]))
+        self.assertTrue(auth.CLIENT_ID.fullmatch(client["client_id"]))
         self.assertTrue(client["client_secret"])
         self.assertEqual(client["scope"], auth.TAAPAT_SCOPE)
         self.assertEqual(client["device_url"], auth.LEGACY_DEVICE_URL)
