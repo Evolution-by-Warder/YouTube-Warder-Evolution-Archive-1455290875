@@ -94,7 +94,7 @@ class ApprovedSourceTests(unittest.TestCase):
         self.assertNotIn('refresh_token', source)
 
     def test_stable_runtime_and_legacy_test_builder_are_separate(self):
-        self.assertEqual(builder.VERSION,'1.0.2~test2')
+        self.assertEqual(builder.VERSION,'1.0.2~test3')
         self.assertIn('CURRENT_VERSION = "1.0.2"',(SRC/'update_core.py').read_text())
 
 
