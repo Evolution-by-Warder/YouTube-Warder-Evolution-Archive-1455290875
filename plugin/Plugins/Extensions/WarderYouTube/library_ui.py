@@ -142,7 +142,7 @@ class WarderYouTubeLibrary(Screen):
                 self["results"].moveToIndex(min(selection, len(self.video_items) - 1))
             except (AttributeError, ValueError, TypeError):
                 pass
-        message = (_("Do Obľúbených bolo doplnených %d videí z YouTube.") % added
+        message = (_("Z YouTube doplnené: %d") % added
                    if added else _("Obľúbené sú aktuálne."))
         if result.get("truncated") or result.get("capacity_reached"):
             message += " " + _("Dosiahnutý limit importu; lokálne videá zostali zachované.")
