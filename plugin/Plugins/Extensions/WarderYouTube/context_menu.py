@@ -15,12 +15,17 @@ class WarderYouTubeContext(Screen):
     def __init__(self, session, video=None, is_favourite=False, mode="search"):
         Screen.__init__(self, session)
         add_header(self)
+        has_video = isinstance(video, dict) and bool(video.get("video_id"))
         self.options = ([
             ("play", _("Play video")),
             ("favorite", _("Remove video from favourites") if is_favourite else _("Add video to favourites")),
             ("info", _("Video details")),
-        ] if mode not in ("home", "subscriptions") or (
-            isinstance(video, dict) and video.get("video_id")) else [])
+        ] if has_video or (mode not in ("home", "subscriptions", "favourites")) else [])
+        # No account data or network call is needed to render MENU.
+        from .video_ratings import can_like
+        signed_in = can_like()
+        if has_video and signed_in:
+            self.options.insert(2, ("like_youtube", _("Označiť Páči sa mi na YouTube")))
         if mode in ("home", "subscriptions"):
             self.options.insert(0, (
                 "choose_subscription" if mode == "subscriptions" else "choose_category",
@@ -29,7 +34,7 @@ class WarderYouTubeContext(Screen):
             ))
         if mode == "subscriptions":
             # Selected video: 1 quick selector + 3 video actions + logout.
-            # Keep at most five native context rows; BLUE still opens Search.
+            # Keep the existing actions; an authorized account adds one Like row.
             self.options.append(("disconnect_account", _("Disconnect YouTube account")))
         elif mode == "home":
             # One slot remains in the five-row context menu. The BLUE key
@@ -38,10 +43,11 @@ class WarderYouTubeContext(Screen):
         elif mode == "search":
             self.options.append(("search", _("New search")))
         elif mode == "favourites":
-            # In Favourites, "Remove video from favourites" already removes this
-            # video. A second single-video delete would do exactly the same thing.
-            # Keep only the distinct, confirmation-protected clear-all action.
-            self.options.append(("clear", _("Clear all favourite videos")))
+            # Local saved videos and account likes are intentionally separate.
+            if has_video:
+                self.options.append(("clear", _("Clear all favourite videos")))
+            if signed_in:
+                self.options.append(("youtube_likes", _("Páči sa mi na YouTube")))
         elif mode == "history":
             # In History, "Delete video from history" removes only that record;
             # "Remove from favourites" is a separate, optional operation.
@@ -51,7 +57,7 @@ class WarderYouTubeContext(Screen):
         self["heading"] = Label(_("Video actions"))
         self["video"] = Label(str((video or {}).get("title") or _("No video selected"))[:155])
         self.selected = 0
-        for index in range(5):
+        for index in range(6):
             self["context_focus%d" % index] = Label(" ")
             self["context_row%d" % index] = Label(
                 self.options[index][1] if index < len(self.options) else ""
