@@ -47,6 +47,9 @@ class WarderYouTubeLibrary(Screen):
         self.likes_previous_tokens = []
         self.likes_next_token = ""
         self.likes_loaded = False
+        self.favourites_sync_busy = False
+        self.favourites_sync_started = False
+        self.favourites_sync_epoch = 0
 
         title = (_("Páči sa mi na YouTube") if kind == "youtube_likes"
                  else _("Favourites") if kind == "favourites" else _("History"))
@@ -85,12 +88,76 @@ class WarderYouTubeLibrary(Screen):
             }, -1
         )
         self["results"].onSelectionChanged.append(self.selection_changed)
-        self.onShown.append(self.refresh)
+        self.onShown.append(self.on_show)
         self.onClose.append(self.dispose)
 
     def dispose(self):
         self.disposed = True
         self.request_version += 1
+        self.favourites_sync_epoch += 1
+
+    def on_show(self):
+        """Keep local videos immediately visible; merge missing likes in a worker."""
+        self.refresh()
+        if self.kind == "favourites":
+            self.start_favourites_sync()
+
+    def start_favourites_sync(self):
+        if (self.disposed or self.kind != "favourites"
+                or self.favourites_sync_busy or self.favourites_sync_started
+                or self.playback_active):
+            return
+        from .video_ratings import can_like
+        if not can_like():
+            return  # Signed out/read-only accounts keep their local list.
+        from .favourites_sync import sync_youtube_favourites
+        self.favourites_sync_started = True
+        self.favourites_sync_busy = True
+        self.favourites_sync_epoch += 1
+        epoch = self.favourites_sync_epoch
+        self["status"].setText(_("Kontrolujem nové obľúbené z YouTube…"))
+        try:
+            task = deferToThread(sync_youtube_favourites)
+            task.addCallbacks(
+                lambda result: self.favourites_sync_ready(epoch, result),
+                lambda error: self.favourites_sync_failed(epoch, error))
+        except Exception:
+            self.favourites_sync_failed(epoch, None)
+
+    def favourites_sync_ready(self, epoch, result):
+        if self.disposed or epoch != self.favourites_sync_epoch:
+            return
+        self.favourites_sync_busy = False
+        if not isinstance(result, dict):
+            return self.favourites_sync_failed(epoch, None)
+        added = result.get("added", 0)
+        if not isinstance(added, int) or added < 0:
+            return self.favourites_sync_failed(epoch, None)
+        # Refresh reads the atomically updated local file, preserving native
+        # selection and avoiding any account-only network calls in the GUI.
+        if added:
+            selection = selected_index(self["results"])
+            self.refresh()
+            try:
+                self["results"].moveToIndex(min(selection, len(self.video_items) - 1))
+            except (AttributeError, ValueError, TypeError):
+                pass
+        message = (_("Do Obľúbených bolo doplnených %d videí z YouTube.") % added
+                   if added else _("Obľúbené sú aktuálne."))
+        if result.get("truncated") or result.get("capacity_reached"):
+            message += " " + _("Dosiahnutý limit importu; lokálne videá zostali zachované.")
+        self["status"].setText(message)
+
+    def favourites_sync_failed(self, epoch, failure):
+        if self.disposed or epoch != self.favourites_sync_epoch:
+            return
+        self.favourites_sync_busy = False
+        error = getattr(failure, "value", failure)
+        from .video_ratings import VideoRatingError
+        self["status"].setText(
+            str(error) if isinstance(error, (LibraryError, VideoRatingError))
+            else _("YouTube Obľúbené sa teraz nepodarilo doplniť; miestne videá zostali zachované.")
+        )
 
     def refresh(self):
         if self.disposed or self.busy or self.playback_active:
