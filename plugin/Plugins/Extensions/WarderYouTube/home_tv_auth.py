@@ -93,7 +93,7 @@ class HomeTVLogin:
             return
         if self.device:
             self.home._show_details([
-                "YouTube TV login · Taapat compatibility test",
+                _("Prihlásenie do YouTube"),
                 _("Open on your phone or PC:"),
                 str(self.device["verification_url"]),
                 _("Enter this code exactly:"),
