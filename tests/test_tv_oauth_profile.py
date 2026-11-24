@@ -1,4 +1,4 @@
-"""Offline integration checks for the separate Taapat TV-login test profile.
+"""Offline tests for the embedded YouTube TV-device sign-in profile.
 
 No Google account, user tokens, or external network are contacted.
 """
@@ -14,11 +14,11 @@ import unittest
 from urllib.parse import parse_qs
 
 ROOT = Path(__file__).resolve().parents[1] / "plugin/Plugins/Extensions/WarderYouTube"
-PACKAGE = "_warder_taapat_test"
+PACKAGE = "_warder_tv_profile_test"
 pkg = types.ModuleType(PACKAGE)
 pkg.__path__ = [str(ROOT)]
 sys.modules[PACKAGE] = pkg
-compat = importlib.import_module(PACKAGE + ".taapat_oauth_compat")
+compat = importlib.import_module(PACKAGE + ".tv_oauth_profile")
 auth = importlib.import_module(PACKAGE + ".subscriptions_auth")
 
 
@@ -35,7 +35,7 @@ class TVCompatibilityTests(unittest.TestCase):
         client = auth.read_client()
         self.assertTrue(auth.CLIENT_ID.fullmatch(client["client_id"]))
         self.assertTrue(client["client_secret"])
-        self.assertEqual(client["scope"], auth.TAAPAT_SCOPE)
+        self.assertEqual(client["scope"], auth.FULL_SCOPE)
         self.assertEqual(client["device_url"], auth.LEGACY_DEVICE_URL)
         self.assertEqual(client["token_url"], auth.LEGACY_TOKEN_URL)
         self.assertEqual(client["device_grant"], auth.LEGACY_DEVICE_GRANT)
@@ -43,6 +43,44 @@ class TVCompatibilityTests(unittest.TestCase):
                             "warderyoutube-oauth-token.json")
         self.assertNotEqual(auth.CLIENT_PATH.name,
                             "warderyoutube-oauth-client.json")
+
+    def test_upgrade_migrates_single_private_receiver_token(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            target = folder / "warderyoutube-account-token.json"
+            source = folder / "warderyoutube-unit-test-token.json"
+            source.write_text(json.dumps({
+                "access_token": "test-access", "refresh_token": "test-refresh",
+                "expires_at": 9999999999
+            }), encoding="utf-8")
+            source.chmod(0o600)
+            previous = auth.TOKEN_PATH
+            auth.TOKEN_PATH = target
+            try:
+                auth._migrate_receiver_test_token(target)
+                self.assertTrue(target.is_file())
+                self.assertFalse(source.exists())
+                self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+                self.assertEqual(json.loads(target.read_text())["refresh_token"], "test-refresh")
+                auth._migrate_receiver_test_token(target)
+            finally:
+                auth.TOKEN_PATH = previous
+
+    def test_previous_readonly_token_remains_untouched(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            source = folder / "warderyoutube-oauth-token.json"
+            source.write_text(json.dumps({"refresh_token": "old-readonly"}))
+            source.chmod(0o600)
+            target = folder / "warderyoutube-account-token.json"
+            previous = auth.TOKEN_PATH
+            auth.TOKEN_PATH = target
+            try:
+                auth._migrate_receiver_test_token(target)
+                self.assertTrue(source.is_file())
+                self.assertFalse(target.exists())
+            finally:
+                auth.TOKEN_PATH = previous
 
     def test_existing_receiver_client_override_still_supports_modern_flow(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -53,7 +91,7 @@ class TVCompatibilityTests(unittest.TestCase):
             path.chmod(0o600)
             self.assertEqual(auth.read_client(path), values)
 
-    def test_device_code_uses_taapat_scope_and_endpoint(self):
+    def test_device_code_uses_full_scope_and_endpoint(self):
         client = auth.read_client()
         captured = []
         def opener(req, timeout):
@@ -70,7 +108,7 @@ class TVCompatibilityTests(unittest.TestCase):
         self.assertEqual(captured[0].full_url, auth.LEGACY_DEVICE_URL)
         params = parse_qs(captured[0].data.decode("ascii"))
         self.assertEqual(params["client_id"], [client["client_id"]])
-        self.assertEqual(params["scope"], [auth.TAAPAT_SCOPE])
+        self.assertEqual(params["scope"], [auth.FULL_SCOPE])
         self.assertNotIn("client_secret", params)
 
     def test_poll_and_token_refresh_use_compat_client_and_never_urls(self):
@@ -83,18 +121,18 @@ class TVCompatibilityTests(unittest.TestCase):
             self.assertEqual(params["client_id"], [client["client_id"]])
             if len(captured) == 1:
                 self.assertEqual(params["grant_type"], [auth.LEGACY_DEVICE_GRANT])
-                # This is the actual parameter name required by Taapat's
+                # This is the actual parameter name required by the legacy flow's
                 # older device grant; device_code triggers a first-poll error.
                 self.assertEqual(params["code"], ["device-code-value"])
                 self.assertNotIn("device_code", params)
                 return Response({"access_token": "TEST-user-token",
                                  "refresh_token": "TEST-refresh-token",
-                                 "scope": auth.TAAPAT_SCOPE,
+                                 "scope": auth.FULL_SCOPE,
                                  "expires_in": 3600})
             self.assertEqual(params["grant_type"], ["refresh_token"])
             self.assertEqual(params["refresh_token"], ["TEST-refresh-token"])
             return Response({"access_token": "TEST-refreshed",
-                             "scope": auth.TAAPAT_SCOPE,
+                             "scope": auth.FULL_SCOPE,
                              "expires_in": 3600})
         state, issued = auth.poll_device_code(
             client, "device-code-value", opener=opener)
