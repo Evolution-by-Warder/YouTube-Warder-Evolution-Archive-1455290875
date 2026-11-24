@@ -161,7 +161,7 @@ def merge_youtube_favourites(videos, path=LIBRARY_PATH):
             saved["favourites"] = fresh + records
             _write(path, saved)
         return {"added": len(fresh), "total": len(saved["favourites"]),
-                "capacity_reached": len(records) >= LIMITS["favourites"]}
+                "capacity_reached": len(saved["favourites"]) >= LIMITS["favourites"]}
 
 
 def save_confirmed_youtube_like(video, path=LIBRARY_PATH):
