@@ -57,7 +57,42 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(m.list_videos("history", self.path)[-1]["video_id"], "00000000005")
         for n in range(205):
             m.toggle_favourite(video(n), self.path)
-        self.assertEqual(len(m.list_videos("favourites", self.path)), 200)
+        self.assertEqual(len(m.list_videos("favourites", self.path)), 205)
+
+    def test_merge_liked_videos_preserves_local_favourites_and_history(self):
+        m.toggle_favourite(video(1, title="Local edited title"), self.path)
+        m.record_opened(video(3), self.path)
+        incoming = [video(2), video(1, title="Remote title"), video(2),
+                    video(4, video_id="not-a-video-id"), video(5)]
+        result = m.merge_youtube_favourites(incoming, self.path)
+        self.assertEqual(result["added"], 2)
+        saved = m.list_videos("favourites", self.path)
+        self.assertEqual([v["video_id"] for v in saved],
+                         [video(1)["video_id"], video(2)["video_id"], video(5)["video_id"]])
+        self.assertEqual(saved[0]["title"], "Local edited title")
+        self.assertEqual(len(m.list_videos("history", self.path)), 1)
+        self.assertNotIn("SECRET", self.path.read_text("utf-8"))
+        self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+        self.assertEqual(self.path.stat().st_mode & 0o777, 0o600)
+
+    def test_merge_capacity_never_evicts_local_items(self):
+        m.toggle_favourite(video(1), self.path)
+        incoming = [video(i) for i in range(2, m.LIMITS["favourites"] + 7)]
+        merged = m.merge_youtube_favourites(incoming, self.path)
+        self.assertEqual(merged["total"], m.LIMITS["favourites"])
+        self.assertTrue(merged["capacity_reached"])
+        saved = m.list_videos("favourites", self.path)
+        self.assertEqual(saved[0]["video_id"], video(1)["video_id"])
+        self.assertIn(video(2)["video_id"], {v["video_id"] for v in saved})
+        self.assertNotIn(video(m.LIMITS["favourites"]+6)["video_id"],
+                         {v["video_id"] for v in saved})
+        self.assertEqual(m.merge_youtube_favourites(incoming, self.path)["added"], 0)
+
+    def test_corrupt_library_is_not_overwritten_by_youtube_merge(self):
+        self.path.write_text("{BROKEN", encoding="utf-8")
+        with self.assertRaises(m.LibraryError):
+            m.merge_youtube_favourites([video(1)], self.path)
+        self.assertEqual(self.path.read_text("utf-8"), "{BROKEN")
 
     def test_remove_and_clear_affect_only_selected_list(self):
         m.record_opened(video(1), self.path)
