@@ -20,7 +20,7 @@ class WarderYouTubeContext(Screen):
             ("play", _("Play video")),
             ("favorite", _("Remove video from favourites") if is_favourite else _("Add video to favourites")),
             ("info", _("Video details")),
-        ] if has_video or (mode not in ("home", "subscriptions", "favourites")) else [])
+        ] if has_video or (video is not None and mode not in ("home", "subscriptions")) else [])
         # No account data or network call is needed to render MENU.
         from .video_ratings import can_like
         signed_in = can_like()
@@ -44,7 +44,7 @@ class WarderYouTubeContext(Screen):
             self.options.append(("search", _("New search")))
         elif mode == "favourites":
             # Local saved videos and account likes are intentionally separate.
-            if has_video:
+            if video is not None:
                 self.options.append(("clear", _("Clear all favourite videos")))
             if signed_in:
                 self.options.append(("youtube_likes", _("Páči sa mi na YouTube")))
