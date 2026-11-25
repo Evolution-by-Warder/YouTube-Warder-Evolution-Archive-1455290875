@@ -53,6 +53,24 @@ try:
             for product_page in product_pages:
                 page.goto(url,wait_until="domcontentloaded")
                 assert page.locator("html").get_attribute("lang") == "en"
+                # Native stretched link: verify the actual hit target on artwork, text and each independent action.
+                card=page.locator(".product").filter(has=page.locator("a.product-card-link[href='"+product_page+"']"))
+                assert card.count()==1
+                assert card.locator("a.product-card-link").count()==1
+                for target in (card.locator(".art"),card.locator(".product-copy p")):
+                    target.scroll_into_view_if_needed()
+                    assert target.evaluate("""e=>{const r=e.getBoundingClientRect();const a=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('a');return a?.classList.contains('product-card-link')===true}""")
+                    r=target.bounding_box()
+                    page.mouse.click(r["x"]+r["width"]/2,r["y"]+r["height"]/2)
+                    page.wait_for_url("**/"+product_page)
+                    page.goto(url,wait_until="domcontentloaded")
+                for action in card.locator("a:not(.product-card-link)").all():
+                    action.scroll_into_view_if_needed()
+                    assert action.evaluate("""a=>{const r=a.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('a')===a}""")
+                card.locator("a.product-card-link").focus()
+                page.keyboard.press("Enter")
+                page.wait_for_url("**/"+product_page)
+                page.goto(url,wait_until="domcontentloaded")
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")

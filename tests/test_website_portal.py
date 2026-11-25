@@ -163,3 +163,23 @@ class WebsitePortalTests(unittest.TestCase):
         source=(docs/"fullhdglass.html").read_text()
         self.assertIn('src="screenshots/channel-selection/card-preview-pig.webp" width="428" height="185"',source)
         self.assertEqual((docs/"screenshots/channel-selection/card-preview-pig.webp").read_bytes(),(docs/"screenshots/channel-selection/40-full.webp").read_bytes())
+
+    def test_homepage_product_card_links(self):
+        import re
+        docs=ROOT/"docs"
+        source=(docs/"index.html").read_text()
+        cards=re.findall(r'<article class="product [^"]+" id="([^"]+)">(.*?)</article>',source,re.S)
+        expected={"glass":"fullhdglass.html","picon":"piconhub.html","radio":"radio.html","youtube":"youtube-warder.html","gsu":"gsu.html"}
+        self.assertEqual(len(cards),5)
+        self.assertEqual({key for key,_ in cards},set(expected))
+        for key,card in cards:
+            self.assertIn('<h3><a class="product-card-link" href="'+expected[key]+'">',card)
+            self.assertIn('class="btn primary" href="'+expected[key]+'"',card)
+            self.assertEqual(card.count('class="product-card-link"'),1)
+            p=Parser();p.feed(card)
+            self.assertEqual(len(p.href),5)
+            self.assertEqual(sum(h.endswith(".ipk") for h in p.href),1)
+            self.assertEqual(sum(h.endswith("/releases/latest") for h in p.href),1)
+        css=(docs/"portal.css").read_text()
+        self.assertIn(".product-card-link::after",css)
+        self.assertIn("a:not(.product-card-link)",css)

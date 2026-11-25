@@ -54,3 +54,7 @@ Owner supplied seven further captures and explicitly confirmed that all belong s
 ## Channel selection collection card image — 25 November 2026
 
 Owner requested a concrete channel-selection panel without any settings/help bubble or arrow. Changed the fourth FullHDGlass gallery card to the existing verified `s PIG` native crop (variant 40, 428 × 185 pixels). Its dedicated asset URL uses the exact same Git blob as the gallery entry, avoiding stale cached full-screen images. Collection link and all other content unchanged. Added source and browser regression checks.
+
+## Clickable homepage product cards — 25 November 2026
+
+Owner requested that clicking anywhere on a highlighted product card open the same detail page as Discover features. Stretched each existing product-heading native HTML link across its card via a CSS pseudo-element; the artwork, description and free space all navigate to the corresponding product detail page without JavaScript. IPK downloads, Latest release, Source & documentation and Discover features retain their own native links above the stretched surface. Keyboard focus, Ctrl/Cmd-click and native link behavior are preserved; no nested anchors. Added structural and desktop/tablet/mobile browser hit-target and navigation tests. No product assets, releases, detail pages or galleries changed in this PR.

@@ -40,3 +40,11 @@
 
 /* Native channel-selection preview rectangles; never stretch or crop the UI. */
 #channel-selection .screenshot-grid a{aspect-ratio:auto;background:#040811}#channel-selection .screenshot-grid img{width:100%;height:auto;object-fit:contain}#channel-selection .shot-zoom{width:26px;height:26px;bottom:4px;right:4px;font-size:17px}body:has(#channel-selection) .screenshot-dialog img{width:min(100%,824px);height:auto;object-fit:contain}
+
+/* The heading's native link stretches across each homepage product card. Other links stay independently interactive above it. */
+.products > .product{position:relative;isolation:isolate;cursor:pointer}
+.products > .product .product-card-link{position:static}
+.products > .product .product-card-link::after{content:"";position:absolute;inset:0;z-index:2;cursor:pointer}
+.products > .product a:not(.product-card-link){position:relative;z-index:3}
+.products > .product:focus-within{border-color:var(--accent)}
+.products > .product .product-card-link:focus-visible::after{outline:2px solid var(--accent);outline-offset:-4px;border-radius:16px}
