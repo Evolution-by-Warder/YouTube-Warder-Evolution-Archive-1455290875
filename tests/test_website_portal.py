@@ -168,7 +168,7 @@ class WebsitePortalTests(unittest.TestCase):
         import re
         docs=ROOT/"docs"
         source=(docs/"index.html").read_text()
-        cards=re.findall(r'<article class="product [^"]+" id="([^"]+)">(.*?)</article>',source,re.S)
+        cards=re.findall(r'<article class="product [^"]+" id="([^"]+)"[^>]*>(.*?)</article>',source,re.S)
         expected={"glass":"fullhdglass.html","picon":"piconhub.html","radio":"radio.html","youtube":"youtube-warder.html","gsu":"gsu.html"}
         self.assertEqual(len(cards),5)
         self.assertEqual({key for key,_ in cards},set(expected))
@@ -214,7 +214,7 @@ class WebsitePortalTests(unittest.TestCase):
                     self.assertRegex(anchor,r'data-caption-'+lang+r'="[^"]+"')
         home=(docs/"index.html").read_text()
         for key,filename in (("glass","fullhdglass.html"),("picon","piconhub.html"),("radio","radio.html"),("youtube","youtube-warder.html"),("gsu","gsu.html")):
-            card=re.search(r'<article class="product [^"]+" id="'+key+r'">(.*?)</article>',home,re.S).group(1)
+            card=re.search(r'<article class="product [^"]+" id="'+key+r'"[^>]*>(.*?)</article>',home,re.S).group(1)
             detail=(docs/filename).read_text()
             if key in ("glass","radio"):
                 self.assertIn("podporuje 21 jazykov",card)
