@@ -97,7 +97,7 @@ try:
             page.locator('#screenshots a[href="fullhdglass-infobars.html"]').click()
             page.wait_for_url("**/fullhdglass-infobars.html")
             variants=page.locator("#infobars .screenshot-grid a")
-            assert variants.count()==77
+            assert variants.count()==78
             page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
             page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" infobar EN overflow"
@@ -105,9 +105,9 @@ try:
             dialog=page.locator("dialog.screenshot-dialog")
             assert dialog.is_visible()
             page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
-            assert "1 / 77" in dialog.locator(".screenshot-caption").inner_text()
+            assert "1 / 78" in dialog.locator(".screenshot-caption").inner_text()
             page.keyboard.press("ArrowRight")
-            assert "2 / 77" in dialog.locator(".screenshot-caption").inner_text()
+            assert "2 / 78" in dialog.locator(".screenshot-caption").inner_text()
             page.keyboard.press("Escape")
             dialog.wait_for(state="detached")
             page.locator("button[data-lang='sk']").click()

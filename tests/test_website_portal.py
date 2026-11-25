@@ -91,13 +91,15 @@ class WebsitePortalTests(unittest.TestCase):
         docs=ROOT/'docs'
         data=json.loads((docs/'screenshots/infobars/provenance.json').read_text())
         items=data['items']
-        self.assertEqual(len(items),77)
-        self.assertEqual([r['type'] for r in items],list(range(1,37))+list(range(38,66))+list(range(70,78))+[87,88,89,98,99])
+        self.assertEqual(len(items),78)
+        self.assertEqual([r['type'] for r in items],list(range(1,66))+list(range(70,78))+[87,88,89,98,99])
         self.assertEqual(next(r for r in items if r['type']==38)['source'],'37.jpg')
+        self.assertEqual(next(r for r in items if r['type']==37)['source'],'follow-up/38.jpg')
+        self.assertIsNone(data['missing_type'])
         page=(docs/'fullhdglass-infobars.html').read_text()
         p=Parser();p.feed(page)
         self.assertEqual(len(p.ids),len(set(p.ids)))
-        self.assertEqual(page.count('class="shot-zoom"'),77)
+        self.assertEqual(page.count('class="shot-zoom"'),78)
         self.assertIn('fullhdglass-infobars.html',(docs/'fullhdglass.html').read_text())
         self.assertFalse(any(h.lower().endswith('.zip') for h in p.href))
         for item in items:

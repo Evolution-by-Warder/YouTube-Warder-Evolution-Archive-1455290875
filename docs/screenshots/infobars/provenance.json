@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "source": "infobary.ZIP",
-  "source_count": 77,
-  "missing_type": 37,
+  "source": "infobary.ZIP + owner follow-up capture 38.jpg",
+  "source_count": 78,
+  "missing_type": null,
   "items": [
     {
       "type": 1,
@@ -363,6 +363,16 @@
       "thumb": "screenshots/infobars/36-thumb.webp",
       "full_git_blob": "1428a599a42d193b16f8fccaa6c6afe697242ffa",
       "thumb_git_blob": "df60f2d80d8328f1a9376f28cd38068f14b43fdb"
+    },
+    {
+      "type": 37,
+      "source": "follow-up/38.jpg",
+      "width": 1920,
+      "height": 1080,
+      "full": "screenshots/infobars/37-full.webp",
+      "thumb": "screenshots/infobars/37-thumb.webp",
+      "full_git_blob": "c78088c52cf2f03a4d69e8e1bbe6b3ca3c770ab2",
+      "thumb_git_blob": "7bdad26898979eec3850c16894846bbe29e82957"
     },
     {
       "type": 38,
