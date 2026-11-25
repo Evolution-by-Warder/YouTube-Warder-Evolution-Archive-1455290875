@@ -193,3 +193,35 @@ class WebsitePortalTests(unittest.TestCase):
         page=(docs/"fullhdglass.html").read_text()
         self.assertIn('data-caption-sk="'+item["sk"]+'"',page)
         self.assertIn('data-caption-en="'+item["en"]+'"',page)
+
+    def test_four_language_marketing_portal(self):
+        import re
+        docs=ROOT/"docs"
+        langs=("sk","en","de","ru")
+        pages=("index.html","fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html","fullhdglass-infobars.html","fullhdglass-channel-selection.html")
+        for filename in pages:
+            source=(docs/filename).read_text()
+            self.assertIn('<html lang="sk" data-language="sk">',source)
+            self.assertEqual(re.findall(r'<button data-lang="([^"]+)"',source),list(langs))
+            counts=[source.count('class="'+lang+'" lang="'+lang+'"') for lang in langs]
+            self.assertGreater(counts[0],0)
+            self.assertEqual(len(set(counts)),1,filename)
+            for lang in langs:
+                self.assertIn('data-text-'+lang+'=',source)
+                self.assertIn('data-content-'+lang+'=',source)
+            for anchor in re.findall(r'<a [^>]*data-caption-en="[^"]+"[^>]*>',source):
+                for lang in langs:
+                    self.assertRegex(anchor,r'data-caption-'+lang+r'="[^"]+"')
+        home=(docs/"index.html").read_text()
+        for key,filename in (("glass","fullhdglass.html"),("picon","piconhub.html"),("radio","radio.html"),("youtube","youtube-warder.html"),("gsu","gsu.html")):
+            card=re.search(r'<article class="product [^"]+" id="'+key+r'">(.*?)</article>',home,re.S).group(1)
+            detail=(docs/filename).read_text()
+            if key in ("glass","radio"):
+                self.assertIn("podporuje 21 jazykov",card)
+                self.assertIn("podporuje 21 jazykov",detail)
+            else:
+                self.assertIn("Pripravuje sa rozšírenie jazykovej podpory na 21 jazykov.",card)
+                self.assertIn("Pripravuje sa rozšírenie jazykovej podpory na 21 jazykov.",detail)
+        script=(docs/"portal.js").read_text()
+        self.assertIn('let initial="sk"',script)
+        self.assertNotIn("navigator.language",script)
