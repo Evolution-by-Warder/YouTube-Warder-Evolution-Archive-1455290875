@@ -9,8 +9,8 @@ class Parser(HTMLParser):
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
         if 'id' in a: self.ids.append(a['id'])
-        if 'href' in a: self.href.append(a['href'])
-        if 'src' in a: self.src.append(a['src'])
+        if 'href' in a: self.href.append(a['href'].split('?',1)[0] if a['href'].startswith('portal.css?') else a['href'])
+        if 'src' in a: self.src.append(a['src'].split('?',1)[0] if a['src'].startswith('portal.js?') else a['src'])
         if 'lang' in a: self.lang.append(a['lang'])
 class WebsitePortalTests(unittest.TestCase):
     def test_portal_assets_links_and_products(self):
@@ -225,3 +225,18 @@ class WebsitePortalTests(unittest.TestCase):
         script=(docs/"portal.js").read_text()
         self.assertIn('let initial="sk"',script)
         self.assertNotIn("navigator.language",script)
+
+    def test_language_cache_safety(self):
+        import re
+        docs=ROOT/"docs"
+        for filename in ("index.html","fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html","fullhdglass-infobars.html","fullhdglass-channel-selection.html"):
+            page=(docs/filename).read_text()
+            self.assertIn('href="portal.css?v=20261125-langfix2"',page)
+            self.assertIn('src="portal.js?v=20261125-langfix2"',page)
+            self.assertIn('id="warder-language-guard"',page)
+            for lang in ("en","de","ru"):
+                tags=re.findall(r'<span class="'+lang+r'" lang="'+lang+r'"[^>]*>',page)
+                self.assertTrue(tags,filename)
+                self.assertTrue(all(" hidden>" in tag for tag in tags),filename)
+            self.assertNotIn('<span class="sk" lang="sk" hidden>',page)
+        self.assertIn('el.hidden=el.getAttribute("lang")!==lang',(docs/"portal.js").read_text())

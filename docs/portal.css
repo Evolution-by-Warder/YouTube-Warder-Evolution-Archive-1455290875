@@ -53,3 +53,6 @@
 .languages{flex:0 0 auto}.languages button{padding:6px 8px;min-width:30px}.nav-links{min-width:0;flex-wrap:wrap}.product-copy,.detail-copy,.feature-card,.release-panel,.install-panel,.family-card{min-width:0}.product-copy [lang],.detail-copy [lang],.feature-card [lang],.release-panel [lang],.install-panel [lang],.section-heading [lang],.family-card [lang],.screenshot-grid figcaption [lang]{overflow-wrap:anywhere}
 @media(max-width:1050px){.nav{height:auto;min-height:83px;flex-wrap:wrap;gap:14px;padding-block:12px}.nav-links{gap:14px}.product-detail .nav-links{gap:12px}}
 @media(max-width:650px){.nav{min-height:75px;gap:10px}.nav-links{gap:12px}.languages button{padding:6px 7px;min-width:28px}.screenshot-controls{gap:6px}.screenshot-caption{overflow-wrap:anywhere;min-width:0}}
+
+/* Explicit hidden flags also protect language visibility from stale styles. */
+span[hidden]{display:none!important}
