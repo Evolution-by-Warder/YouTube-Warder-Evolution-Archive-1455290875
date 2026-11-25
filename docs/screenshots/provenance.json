@@ -237,6 +237,26 @@
         "height": 1080,
         "full_git_blob": "079f73c309aa34ee739dc82e83e660eceb1f23c0",
         "thumb_git_blob": "c9901eb573be3956563641c98d84bd0614a30a5b"
+      },
+      {
+        "en": "YouTube video of the currently playing track",
+        "sk": "YouTube videoklip práve hranej skladby",
+        "full": "screenshots/radio/09-full.webp",
+        "thumb": "screenshots/radio/09-thumb.webp",
+        "width": 1920,
+        "height": 1080,
+        "full_git_blob": "7dc6617cec115bee91cad7668755b9a0b40a0aec",
+        "thumb_git_blob": "19164265ad11c9afcf68b05f8ae205431d743f8e"
+      },
+      {
+        "en": "Playback of the song's YouTube video",
+        "sk": "Prehrávanie videoklipu skladby na YouTube",
+        "full": "screenshots/radio/10-full.webp",
+        "thumb": "screenshots/radio/10-thumb.webp",
+        "width": 1920,
+        "height": 1080,
+        "full_git_blob": "d064e20c9f398d1ac9ad8ddede49b0c162dbac60",
+        "thumb_git_blob": "fb10b8652741a100879390eaa839f90a9d669cc5"
       }
     ],
     "youtube": [

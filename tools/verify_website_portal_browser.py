@@ -57,7 +57,7 @@ try:
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
                 gallery=page.locator("#screenshots .screenshot-grid a")
-                expected={"fullhdglass.html":5,"piconhub.html":3,"gsu.html":7,"radio.html":8,"youtube-warder.html":8}
+                expected={"fullhdglass.html":5,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
                 assert gallery.count()==expected[product_page]
                 gallery.first.click()
                 dialog=page.locator("dialog.screenshot-dialog")

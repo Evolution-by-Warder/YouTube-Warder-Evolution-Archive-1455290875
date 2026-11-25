@@ -20,3 +20,7 @@ Owner clarification: galleries are explicitly desired, but only as attractive on
 ## Real receiver galleries — 25 November 2026
 
 Owner-provided and approved screenshots for all five products: FullHDGlass 5, PiconHub 3, GSU 7, Radio 8, YouTube 8 (31 total). All 31 Full HD WebP images and 31 smaller WebP previews were transferred as native Git blobs from the prepared user-approved file; captions are bilingual. GSU originals were approved explicitly, including the ECM image and private local addresses. The five static HTML galleries use the existing accessible zoom, previous/next, arrow keys and Escape controls. No ZIP links or isolated technical assets. The optional FullHDGlass infobar variant archive remains pending extraction and separate visual review; no fabricated variants are included. No runtime, credentials, legal, DNS or release changes.
+
+## Radio YouTube video showcase — 25 November 2026
+
+Owner noted that the published Radio gallery omitted the transition from a playing radio track to its YouTube music video, and requested continuation. Recovered the original approved receiver captures `8(1).jpg` and `9(1).jpg` showing FUN Rádio / O.K.O. with the YouTube video action and playback of that track's video. Added two genuine Full HD WebP captures and their lazy-loaded previews, bilingual captions and provenance; existing eight Radio screenshots are unchanged. Radio now has ten screenshots, the portal 33. Updated structural and browser regression expectations. Website-only scope; no plugin, release, DNS, legal or workflow changes.

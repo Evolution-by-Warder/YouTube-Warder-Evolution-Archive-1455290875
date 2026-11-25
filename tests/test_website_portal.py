@@ -71,7 +71,7 @@ class WebsitePortalTests(unittest.TestCase):
         docs=ROOT/'docs'
         data=json.loads((docs/'screenshots/provenance.json').read_text())
         pages={'glass':'fullhdglass.html','picon':'piconhub.html','gsu':'gsu.html','radio':'radio.html','youtube':'youtube-warder.html'}
-        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':5,'picon':3,'gsu':7,'radio':8,'youtube':8})
+        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':5,'picon':3,'gsu':7,'radio':10,'youtube':8})
         for key,items in data['products'].items():
             source=(docs/pages[key]).read_text()
             self.assertIn('id="screenshots"',source)
