@@ -9,8 +9,8 @@ class Parser(HTMLParser):
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
         if 'id' in a: self.ids.append(a['id'])
-        if 'href' in a: self.href.append(a['href'].split('?',1)[0] if a['href'].startswith(('portal.css?','portal-art/skull.png?')) else a['href'])
-        if 'src' in a: self.src.append(a['src'].split('?',1)[0] if a['src'].startswith(('portal.js?','portal-art/skull.png?')) else a['src'])
+        if 'href' in a: self.href.append(a['href'].split('?',1)[0] if a['href'].startswith(('portal.css?','portal-orbit.css?','portal-art/skull.png?')) else a['href'])
+        if 'src' in a: self.src.append(a['src'].split('?',1)[0] if a['src'].startswith(('portal.js?','portal-orbit.js?','portal-art/skull.png?')) else a['src'])
         if 'lang' in a: self.lang.append(a['lang'])
 class WebsitePortalTests(unittest.TestCase):
     def test_portal_assets_links_and_products(self):
@@ -31,7 +31,7 @@ class WebsitePortalTests(unittest.TestCase):
         self.assertIn('terms.html',(docs/'youtube.html').read_text())
     def test_no_external_scripts(self):
         p=Parser(); p.feed((ROOT/'docs/index.html').read_text()); self.assertIn('portal.js',p.src)
-        self.assertTrue(all(not x.endswith('.js') or x=='portal.js' for x in p.src))
+        self.assertTrue(all(not x.endswith('.js') or x in ('portal.js','portal-orbit.js') for x in p.src))
 
     def test_individual_product_pages(self):
         docs=ROOT/'docs'
@@ -168,7 +168,7 @@ class WebsitePortalTests(unittest.TestCase):
         import re
         docs=ROOT/"docs"
         source=(docs/"index.html").read_text()
-        cards=re.findall(r'<article class="product [^"]+" id="([^"]+)">(.*?)</article>',source,re.S)
+        cards=re.findall(r'<article class="product [^"]+" id="([^"]+)"[^>]*>(.*?)</article>',source,re.S)
         expected={"glass":"fullhdglass.html","picon":"piconhub.html","radio":"radio.html","youtube":"youtube-warder.html","gsu":"gsu.html"}
         self.assertEqual(len(cards),5)
         self.assertEqual({key for key,_ in cards},set(expected))
@@ -214,7 +214,7 @@ class WebsitePortalTests(unittest.TestCase):
                     self.assertRegex(anchor,r'data-caption-'+lang+r'="[^"]+"')
         home=(docs/"index.html").read_text()
         for key,filename in (("glass","fullhdglass.html"),("picon","piconhub.html"),("radio","radio.html"),("youtube","youtube-warder.html"),("gsu","gsu.html")):
-            card=re.search(r'<article class="product [^"]+" id="'+key+r'">(.*?)</article>',home,re.S).group(1)
+            card=re.search(r'<article class="product [^"]+" id="'+key+r'"[^>]*>(.*?)</article>',home,re.S).group(1)
             detail=(docs/filename).read_text()
             if key in ("glass","radio"):
                 self.assertIn("podporuje 21 jazykov",card)
@@ -282,3 +282,16 @@ class WebsitePortalTests(unittest.TestCase):
         self.assertGreater(alpha(399,226),100)
         self.assertNotIn("mask-image",re.search(r"\.skull\{([^}]+)\}",(docs/"portal.css").read_text()).group(1))
         self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1" alt="" width="425" height="445"',(docs/"index.html").read_text())
+
+    def test_product_orbit_sources(self):
+        docs=ROOT/'docs'
+        page=(docs/'index.html').read_text()
+        css=(docs/'portal-orbit.css').read_text()
+        js=(docs/'portal-orbit.js').read_text()
+        self.assertIn('class="planet-track" hidden',page)
+        self.assertEqual(page.count('data-planet-icon='),5)
+        self.assertIn('catalog.querySelectorAll(":scope > .product")',js)
+        self.assertIn('i*2*Math.PI/cards.length',js)
+        self.assertIn('linear infinite reverse',css)
+        self.assertIn('prefers-reduced-motion:reduce',css)
+        self.assertIn('portal-orbit.js',(docs/'WEBSITE-ORBIT.md').read_text())

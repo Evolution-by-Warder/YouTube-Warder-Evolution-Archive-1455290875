@@ -32,6 +32,30 @@ try:
             page.evaluate("document.fonts.ready")
             assert page.locator(".skull").evaluate("""e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect(),s=getComputedStyle(e);return e.naturalWidth===425 && e.naturalHeight===445 && s.objectFit===\'contain\' && s.maskImage===\'none\' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}""")
             assert page.locator(".product").count() == 5
+            planets=page.locator(".planet-link")
+            assert planets.count()==5
+            assert planets.evaluate_all("els=>els.map(e=>e.getAttribute('href'))")==["fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html"]
+            assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationName")== "none"
+            assert page.locator(".planet-link").evaluate_all("els=>els.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})")
+            if name=="desktop":
+                page.evaluate("""()=>{const a=document.createElement('article');a.className='product';a.innerHTML='<a class="product-card-link" href="future.html">Future</a>';document.querySelector('#products .products').append(a)}""")
+                page.wait_for_function("document.querySelectorAll('.planet-link').length===6")
+                assert page.locator(".c2").inner_text()=="01 — 06"
+                assert planets.last.get_attribute("href")=="future.html"
+                page.evaluate("document.querySelector('#products .products').lastElementChild.remove()")
+                page.wait_for_function("document.querySelectorAll('.planet-link').length===5")
+                page.emulate_media(reduced_motion="no-preference")
+                page.mouse.move(0,0)
+                page.wait_for_function("document.querySelector('.planet-track').getAnimations().length>0")
+                before=planets.first.bounding_box()
+                page.wait_for_timeout(350)
+                after=planets.first.bounding_box()
+                assert abs(before["x"]-after["x"])+abs(before["y"]-after["y"])>2
+                page.locator(".orbit-toggle").click()
+                assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationPlayState")=="paused"
+                page.locator(".orbit-toggle").click()
+                page.mouse.move(0,0)
+                page.emulate_media(reduced_motion="reduce")
             assert page.locator("h1").inner_text() == "WARDER\nEVOLUTION"
             assert page.locator("html").get_attribute("lang") == "sk"
             assert page.locator(".hero h2").inner_text() == "Enigma2. V novom svetle."
