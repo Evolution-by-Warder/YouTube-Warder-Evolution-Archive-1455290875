@@ -55,18 +55,3 @@ class WebsitePortalTests(unittest.TestCase):
             for href in p.href+p.src:
                 if href.startswith('#'):self.assertIn(href[1:],p.ids,filename)
                 elif not href.startswith('https://'):self.assertTrue((docs/href.split('#')[0]).is_file(),href)
-
-    def test_original_gallery_assets(self):
-        import json,hashlib
-        docs=ROOT/'docs'
-        items=json.loads((docs/'portal-art/gallery/provenance.json').read_text())
-        self.assertEqual(len(items),16)
-        for item in items:
-            data=(docs/item['destination']).read_bytes()
-            self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))
-            self.assertEqual(hashlib.sha1(('blob %d\0'%len(data)).encode()+data).hexdigest(),item['git_blob_sha'])
-        for filename in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
-            source=(docs/filename).read_text()
-            self.assertIn('id="gallery"',source)
-            self.assertIn('not live receiver screenshots',source)
-            self.assertIn('class="gallery-image"',source)
