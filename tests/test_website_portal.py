@@ -307,15 +307,15 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertIn('data-planet-name="'+name+'" data-planet-icon="'+icon+'" data-planet-color="'+color+'"',page)
             self.assertEqual(page.count('class="planet-track" hidden'),1)
             self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1"',page)
-            self.assertIn('portal-orbit.js?v=20261125-orbit4',page)
-            self.assertIn('portal-orbit.css?v=20261125-orbit4',page)
+            self.assertIn('portal-orbit.js?v=20261125-orbit5',page)
+            self.assertIn('portal-orbit.css?v=20261125-orbit5',page)
             self.assertIn('class="hero detail-hero"',page)
             self.assertNotIn('class="detail-visual',page)
             self.assertNotIn('orbit-showroom',page)
             self.assertIn('class="coord c3">WARDER / ENIGMA2',page)
             self.assertIn('data-planet-icon="'+icon+'"',home)
         self.assertNotIn('data-orbit-mode="single"',home)
-        self.assertIn('portal-orbit.js?v=20261125-orbit4',home)
+        self.assertIn('portal-orbit.js?v=20261125-orbit5',home)
 
     def test_detail_planet_info_uses_existing_localized_content(self):
         js=(ROOT/'docs/portal-orbit.js').read_text()
@@ -334,3 +334,16 @@ class WebsitePortalTests(unittest.TestCase):
         css=(docs/'portal.css').read_text()
         self.assertIn('.detail-hero{border-bottom:1px solid #223951}',css)
         self.assertNotIn('.detail-hero:before',css)
+
+    def test_community_planet_reserve(self):
+        docs=ROOT/'docs'
+        home=(docs/'index.html').read_text()
+        js=(docs/'portal-orbit.js').read_text()
+        self.assertIn('id="community-planets" data-target-count="8"',home)
+        for url in ('https://www.opena.tv/','https://www.openpli.org/','https://www.ab-forum.info/'):
+            self.assertIn(url,home)
+        self.assertIn('Math.max(0,target-productCount)',js)
+        self.assertIn('a.rel="noopener noreferrer"',js)
+        self.assertIn('const config=single?null:',js)
+        for p in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
+            self.assertNotIn('id="community-planets"',(docs/p).read_text())

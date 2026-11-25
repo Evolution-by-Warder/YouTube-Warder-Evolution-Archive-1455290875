@@ -36,3 +36,8 @@ button.planet-link{padding:0;font:inherit;cursor:pointer}
 .planet-info-description{margin:0 0 10px}
 .planet-info ul{margin:0;padding-left:18px;color:#c7e4f4;font-size:13px}
 .planet-info li+li{margin-top:3px}
+
+/* Smaller independent community destinations fill unused orbital positions. */
+.planet-anchor.community-anchor{width:min(13%,calc(75% / var(--planet-count)))}
+.community-planet .planet-symbol{font-size:clamp(8px,3.2cqi,16px);width:75%;margin-top:-8%}
+.community-planet .planet-name{font-size:clamp(6px,1.8cqi,10px);max-width:190%;padding:1px 3px}

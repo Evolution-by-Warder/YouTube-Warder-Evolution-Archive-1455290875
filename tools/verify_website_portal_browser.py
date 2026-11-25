@@ -34,18 +34,24 @@ try:
             assert page.locator(".product").count() == 5
             home_background=page.locator(".hero").evaluate("e=>getComputedStyle(e).backgroundImage")
             home_stars=page.locator(".hero").evaluate("e=>getComputedStyle(e, '::before').backgroundImage")
-            planets=page.locator(".planet-link")
+            planets=page.locator(".planet-link:not(.community-planet)")
+            communities=page.locator(".community-planet")
+            assert page.locator(".planet-link").count()==8
+            assert communities.count()==3
+            assert communities.evaluate_all("els=>els.map(e=>e.getAttribute('href'))")==["https://www.opena.tv/","https://www.openpli.org/","https://www.ab-forum.info/"]
+            assert communities.evaluate_all("els=>els.every(e=>e.target==='_blank'&&e.rel.includes('noopener')&&e.rel.includes('noreferrer'))")
             assert planets.count()==5
             assert planets.evaluate_all("els=>els.map(e=>e.getAttribute('href'))")==["fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html"]
             assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationName")== "none"
             assert page.locator(".planet-link").evaluate_all("els=>els.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})")
             if name=="desktop":
                 page.evaluate("""()=>{const a=document.createElement('article');a.className='product';a.innerHTML='<a class="product-card-link" href="future.html">Future</a>';document.querySelector('#products .products').append(a)}""")
-                page.wait_for_function("document.querySelectorAll('.planet-link').length===6")
-                assert page.locator(".c2").inner_text()=="01 — 06"
+                page.wait_for_function("document.querySelectorAll('.planet-link:not(.community-planet)').length===6 && document.querySelectorAll('.community-planet').length===2")
+                assert page.locator(".c2").inner_text()=="01 — 08"
+                assert page.locator(".planet-link").count()==8
                 assert planets.last.get_attribute("href")=="future.html"
                 page.evaluate("document.querySelector('#products .products').lastElementChild.remove()")
-                page.wait_for_function("document.querySelectorAll('.planet-link').length===5")
+                page.wait_for_function("document.querySelectorAll('.planet-link:not(.community-planet)').length===5 && document.querySelectorAll('.community-planet').length===3")
                 page.emulate_media(reduced_motion="no-preference")
                 page.mouse.move(0,0)
                 page.wait_for_function("document.querySelector('.planet-track').getAnimations().length>0")
@@ -114,6 +120,7 @@ try:
                 detail_planet=page.locator(".detail-hero .planet-link")
                 detail_planet.wait_for(state="visible")
                 assert detail_planet.count()==1
+                assert page.locator(".community-planet").count()==0
                 assert detail_planet.inner_text()=={"fullhdglass.html":"FullHDGlass","piconhub.html":"PiconHub","radio.html":"Radio","youtube-warder.html":"YouTube","gsu.html":"GSU"}[product_page]
                 assert detail_planet.evaluate("e=>e.tagName")== "BUTTON"
                 assert detail_planet.get_attribute("aria-haspopup")=="dialog"

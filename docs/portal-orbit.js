@@ -87,18 +87,25 @@
       const name=card.dataset.planetName||[...link.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim()||link.textContent.trim();
       return {name,href:link.getAttribute("href"),icon:card.dataset.planetIcon||"star",accent:card.dataset.planetColor||getComputedStyle(card).getPropertyValue("--accent").trim()||"#73dcff"};
     }).filter(p=>p&&p.href&&p.name);
+    // Community links fill spare positions; products always take precedence.
+    const config=single?null:hero.querySelector("#community-planets");
+    const productCount=cards.length;
+    const target=Number(config?.dataset.targetCount)||8;
+    const communities=config?[...config.content.querySelectorAll("a[href]")].map(a=>({name:a.textContent.trim(),href:a.getAttribute("href"),symbol:a.dataset.symbol||"↗",accent:a.dataset.color||"#8ac8ed",community:true})).filter(p=>p.name&&/^https:\/\//i.test(p.href)):[];
+    cards.push(...communities.slice(0,Math.max(0,target-productCount)));
     hero.classList.add("orbit-rebuilding");
     track.replaceChildren();track.style.setProperty("--planet-count",String(Math.max(1,cards.length)));
     cards.forEach((p,i)=>{
       const angle=-Math.PI/2+i*2*Math.PI/cards.length;
       const slot=document.createElement("div");slot.className="planet-anchor";
+      if(p.community)slot.classList.add("community-anchor");
       slot.style.setProperty("--x",(50+50*Math.cos(angle)).toFixed(6)+"%");
       slot.style.setProperty("--y",(50+50*Math.sin(angle)).toFixed(6)+"%");
       const counter=document.createElement("div");counter.className="planet-counter";
       const a=document.createElement(single?"button":"a");a.className="planet-link";a.title=p.name;
-      if(single){a.type="button";a.setAttribute("aria-haspopup","dialog");a.setAttribute("aria-expanded","false");a.addEventListener("click",()=>openInfo(a,p))}else{a.href=p.href}
+      if(single){a.type="button";a.setAttribute("aria-haspopup","dialog");a.setAttribute("aria-expanded","false");a.addEventListener("click",()=>openInfo(a,p))}else{a.href=p.href;if(p.community){a.target="_blank";a.rel="noopener noreferrer";a.classList.add("community-planet")}}
       a.setAttribute("aria-label",p.name);a.style.setProperty("--planet-accent",p.accent);
-      const symbol=document.createElement("span");symbol.className="planet-symbol";symbol.setAttribute("aria-hidden","true");symbol.append(makeIcon(p.icon));
+      const symbol=document.createElement("span");symbol.className="planet-symbol";symbol.setAttribute("aria-hidden","true");if(p.community){symbol.textContent=p.symbol}else{symbol.append(makeIcon(p.icon))}
       const label=document.createElement("span");label.className="planet-name";label.textContent=p.name;
       a.append(symbol,label);counter.append(a);slot.append(counter);track.append(slot);
     });
