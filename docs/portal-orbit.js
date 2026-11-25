@@ -1,9 +1,11 @@
-/* Warder Evolution — orbit engine. Homepage product cards are the single source of truth. */
+/* Warder Evolution — orbit engine. Homepage catalog or single-product showroom. */
 (()=>{
   "use strict";
   const hero=document.querySelector(".hero-visual");
   const catalog=document.querySelector("#products .products");
-  if(!hero||!catalog)return;
+  if(!hero)return;
+  const single=hero.dataset.orbitMode==="single";
+  if(!single&&!catalog)return;
   const track=hero.querySelector(".planet-track"),toggle=hero.querySelector(".orbit-toggle"),count=hero.querySelector(".c2");
   if(!track||!toggle)return;
   const ns="http://www.w3.org/2000/svg";
@@ -35,7 +37,7 @@
     return svg;
   }
   function rebuild(){
-    const cards=[...catalog.querySelectorAll(":scope > .product")].map(card=>{
+    const cards=single?[{name:hero.dataset.planetName,icon:hero.dataset.planetIcon||"star",accent:hero.dataset.planetColor||"#73dcff"}]:[...catalog.querySelectorAll(":scope > .product")].map(card=>{
       const link=card.querySelector(".product-card-link");if(!link)return null;
       const name=card.dataset.planetName||[...link.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim()||link.textContent.trim();
       return {name,href:link.getAttribute("href"),icon:card.dataset.planetIcon||"star",accent:card.dataset.planetColor||getComputedStyle(card).getPropertyValue("--accent").trim()||"#73dcff"};
@@ -48,7 +50,8 @@
       slot.style.setProperty("--x",(50+50*Math.cos(angle)).toFixed(6)+"%");
       slot.style.setProperty("--y",(50+50*Math.sin(angle)).toFixed(6)+"%");
       const counter=document.createElement("div");counter.className="planet-counter";
-      const a=document.createElement("a");a.className="planet-link";a.href=p.href;a.title=p.name;
+      const a=document.createElement(single?"span":"a");a.className="planet-link";a.title=p.name;
+      if(single){a.setAttribute("role","img")}else{a.href=p.href}
       a.setAttribute("aria-label",p.name);a.style.setProperty("--planet-accent",p.accent);
       const symbol=document.createElement("span");symbol.className="planet-symbol";symbol.setAttribute("aria-hidden","true");symbol.append(makeIcon(p.icon));
       const label=document.createElement("span");label.className="planet-name";label.textContent=p.name;
@@ -62,6 +65,6 @@
   }
   toggle.addEventListener("click",()=>{hero.classList.toggle("orbit-paused");buttonLabel()});
   new MutationObserver(buttonLabel).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
-  new MutationObserver(rebuild).observe(catalog,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["href","data-planet-name","data-planet-icon","data-planet-color"]});
+  if(catalog&&!single)new MutationObserver(rebuild).observe(catalog,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["href","data-planet-name","data-planet-icon","data-planet-color"]});
   rebuild();buttonLabel();
 })();

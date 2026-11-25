@@ -23,3 +23,13 @@
 @keyframes warder-orbit{from{transform:rotate(0turn)}to{transform:rotate(1turn)}}
 @media(max-width:650px){.orbit-toggle{width:24px;height:24px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.orbit-toggle{display:none}.planet-track,.planet-counter{animation:none!important}}
+
+/* Product showroom: the same orbit engine, one planet, original skull. */
+.detail-visual.orbit-showroom{padding:0;aspect-ratio:1;min-height:0;background:radial-gradient(ellipse at center,#104268 0%,#0a1d33 44%,#050914 86%)}
+.detail-visual.orbit-showroom .hero-visual{width:87%;max-width:520px;flex:none;margin:0}
+.detail-visual.orbit-showroom .skull{position:absolute;left:50%;top:50%;width:83%;height:83%;max-width:none;max-height:none;object-fit:contain;mask-image:none;filter:drop-shadow(0 0 23px #008cff80)}
+.detail-visual.orbit-showroom .orbit-ready .skull{width:58%;height:58%}
+.detail-visual.orbit-showroom .planet-link{pointer-events:none}
+.detail-visual.orbit-showroom .orbit-toggle{bottom:2%;right:2%}
+.detail-visual.orbit-showroom .detail-index,.detail-visual.orbit-showroom .detail-caption{pointer-events:none}
+@media(max-width:650px){.detail-visual.orbit-showroom .detail-index,.detail-visual.orbit-showroom .detail-caption{font-size:8px;padding:4px 6px}.detail-visual.orbit-showroom .detail-index{top:8px;left:8px}.detail-visual.orbit-showroom .detail-caption{bottom:8px;right:8px}}

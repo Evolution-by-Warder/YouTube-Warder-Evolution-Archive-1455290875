@@ -295,3 +295,21 @@ class WebsitePortalTests(unittest.TestCase):
         self.assertIn('linear infinite reverse',css)
         self.assertIn('prefers-reduced-motion:reduce',css)
         self.assertIn('portal-orbit.js',(docs/'WEBSITE-ORBIT.md').read_text())
+
+    def test_single_product_orbit_sources(self):
+        import re
+        docs=ROOT/'docs'
+        home=(docs/'index.html').read_text()
+        expected=(("fullhdglass.html","FullHDGlass","display","#73dcff"),("piconhub.html","PiconHub","grid","#84c7ff"),("radio.html","Radio","radio","#4ce8e1"),("youtube-warder.html","YouTube","play","#ff8c9e"),("gsu.html","GSU","gear","#e6c394"))
+        for filename,name,icon,color in expected:
+            page=(docs/filename).read_text()
+            self.assertEqual(page.count('data-orbit-mode="single"'),1,filename)
+            self.assertIn('data-planet-name="'+name+'" data-planet-icon="'+icon+'" data-planet-color="'+color+'"',page)
+            self.assertEqual(page.count('class="planet-track" hidden'),1)
+            self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1"',page)
+            self.assertIn('portal-orbit.js?v=20261125-orbit2',page)
+            self.assertIn('portal-orbit.css?v=20261125-orbit2',page)
+            self.assertIn('class="detail-visual orbit-showroom"',page)
+            self.assertIn('data-planet-icon="'+icon+'"',home)
+        self.assertNotIn('data-orbit-mode="single"',home)
+        self.assertIn('portal-orbit.js?v=20261125-orbit2',home)

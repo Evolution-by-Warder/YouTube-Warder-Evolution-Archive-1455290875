@@ -103,6 +103,27 @@ try:
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
+                detail_planet=page.locator(".orbit-showroom .planet-link")
+                detail_planet.wait_for(state="visible")
+                assert detail_planet.count()==1
+                assert detail_planet.inner_text()=={"fullhdglass.html":"FullHDGlass","piconhub.html":"PiconHub","radio.html":"Radio","youtube-warder.html":"YouTube","gsu.html":"GSU"}[product_page]
+                assert detail_planet.get_attribute("role")=="img"
+                assert page.locator(".orbit-showroom .skull").evaluate("e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect();return getComputedStyle(e).maskImage==='none' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}")
+                assert detail_planet.evaluate("e=>{const r=e.getBoundingClientRect(),p=e.closest('.orbit-showroom').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom}")
+                assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationName")=="none"
+                if name=="desktop":
+                    page.emulate_media(reduced_motion="no-preference")
+                    page.mouse.move(0,0)
+                    page.wait_for_function("document.querySelector('.planet-track').getAnimations().length>0")
+                    before=detail_planet.bounding_box()
+                    page.wait_for_timeout(350)
+                    after=detail_planet.bounding_box()
+                    assert abs(before["x"]-after["x"])+abs(before["y"]-after["y"])>2
+                    page.locator(".orbit-toggle").click()
+                    assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationPlayState")=="paused"
+                    page.locator(".orbit-toggle").click()
+                    page.emulate_media(reduced_motion="reduce")
+                    page.locator(".orbit-showroom").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-orbit.png")),animations="disabled")
                 gallery=page.locator("#screenshots .screenshot-grid a[data-caption-en][data-caption-sk]")
                 expected={"fullhdglass.html":12,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
                 assert gallery.count()==expected[product_page]
