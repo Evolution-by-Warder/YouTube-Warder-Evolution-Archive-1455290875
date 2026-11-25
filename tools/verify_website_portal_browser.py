@@ -95,10 +95,12 @@ try:
                 checked.append(product_page)
             page.goto(url.replace('index.html','fullhdglass.html'),wait_until="domcontentloaded")
             cards=page.locator('#screenshots .screenshot-grid figure > a')
-            assert cards.count()==6
+            assert cards.count()==7
             assert cards.nth(0).get_attribute('href')=='screenshots/glass/01-full.webp'
             assert cards.nth(1).get_attribute('href')=='fullhdglass-infobars.html'
             assert cards.nth(2).get_attribute('href')=='screenshots/glass/02-full.webp'
+            assert cards.nth(3).get_attribute('href')=='fullhdglass-channel-selection.html'
+            assert cards.nth(4).get_attribute('href')=='screenshots/glass/03-full.webp'
             cards.nth(1).click()
             page.wait_for_url("**/fullhdglass-infobars.html")
             variants=page.locator("#infobars .screenshot-grid a")
@@ -122,6 +124,31 @@ try:
             page.keyboard.press("Escape")
             dialog.wait_for(state="detached")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" infobar SK overflow"
+            page.locator(".crumb a").click()
+            page.wait_for_url("**/fullhdglass.html#screenshots")
+            page.locator('button[data-lang="en"]').click()
+            page.locator('#screenshots .screenshot-grid a[href="fullhdglass-channel-selection.html"]').click()
+            page.wait_for_url("**/fullhdglass-channel-selection.html")
+            channels=page.locator("#channel-selection .screenshot-grid a")
+            assert channels.count()==47
+            assert [channels.nth(i).get_attribute('data-caption-sk') for i in range(39,45)] == ['s PIG','s PIG 2','s PIG 3','s PIG 4','s PIG 5','s PIG 6']
+            page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
+            page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" channel EN overflow"
+            channels.first.click()
+            dialog=page.locator("dialog.screenshot-dialog")
+            assert "1 / 47" in dialog.locator(".screenshot-caption").inner_text()
+            page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
+            page.keyboard.press("ArrowRight")
+            assert "2 / 47" in dialog.locator(".screenshot-caption").inner_text()
+            page.keyboard.press("Escape")
+            dialog.wait_for(state="detached")
+            page.locator("button[data-lang='sk']").click()
+            channels.last.click()
+            assert "s ZZPicon" in dialog.locator(".screenshot-caption").inner_text()
+            page.keyboard.press("Escape")
+            dialog.wait_for(state="detached")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" channel SK overflow"
             page.locator(".crumb a").click()
             page.wait_for_url("**/fullhdglass.html#screenshots")
             assert not errors, errors
