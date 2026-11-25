@@ -130,16 +130,17 @@ try:
             page.locator('#screenshots .screenshot-grid a[href="fullhdglass-channel-selection.html"]').click()
             page.wait_for_url("**/fullhdglass-channel-selection.html")
             channels=page.locator("#channel-selection .screenshot-grid a")
-            assert channels.count()==45
+            assert channels.count()==47
+            assert [channels.nth(i).get_attribute('data-caption-sk') for i in range(39,45)] == ['s PIG','s PIG 2','s PIG 3','s PIG 4','s PIG 5','s PIG 6']
             page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
             page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" channel EN overflow"
             channels.first.click()
             dialog=page.locator("dialog.screenshot-dialog")
-            assert "1 / 45" in dialog.locator(".screenshot-caption").inner_text()
+            assert "1 / 47" in dialog.locator(".screenshot-caption").inner_text()
             page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
             page.keyboard.press("ArrowRight")
-            assert "2 / 45" in dialog.locator(".screenshot-caption").inner_text()
+            assert "2 / 47" in dialog.locator(".screenshot-caption").inner_text()
             page.keyboard.press("Escape")
             dialog.wait_for(state="detached")
             page.locator("button[data-lang='sk']").click()

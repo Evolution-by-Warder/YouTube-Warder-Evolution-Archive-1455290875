@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "source": "vyber kanalov.ZIP",
-  "source_count": 46,
+  "source": "vyber kanalov.ZIP + two selected owner follow-up captures",
+  "source_count": 48,
   "duplicates": {
     "41.jpg": "40.jpg"
   },
@@ -447,6 +447,17 @@
       "thumb_git_blob": "ee668618fc3f37fd1e4b155846d33f3cbfa045f2"
     },
     {
+      "source": "follow-up/43.jpg",
+      "sk": "s PIG 2",
+      "en": "With PIG 2",
+      "width": 1920,
+      "height": 1080,
+      "full": "screenshots/channel-selection/41-full.webp",
+      "full_git_blob": "f80fdc1ecd1ba76edb9782e8d00a28bf5210a289",
+      "thumb": "screenshots/channel-selection/41-thumb.webp",
+      "thumb_git_blob": "3b30725b566b0ca7fa3e8d5fce7d6f4b034fad13"
+    },
+    {
       "source": "42.jpg",
       "sk": "s PIG 3",
       "en": "With PIG 3",
@@ -469,14 +480,25 @@
       "thumb_git_blob": "43e679dc8ce309cac9e7060e8ae22fb1a6a5c885"
     },
     {
+      "source": "follow-up/46.jpg",
+      "sk": "s PIG 5",
+      "en": "With PIG 5",
+      "width": 1920,
+      "height": 1080,
+      "full": "screenshots/channel-selection/44-full.webp",
+      "full_git_blob": "cb87c5fbc14d3e70075d5f6369e80c4fa52f18bf",
+      "thumb": "screenshots/channel-selection/44-thumb.webp",
+      "thumb_git_blob": "25fc2eb16510e1a7b2e11ae3a13bf64b51567d5c"
+    },
+    {
       "source": "44.jpg",
       "sk": "s PIG 6",
       "en": "With PIG 6",
       "width": 1920,
       "height": 1080,
-      "full": "screenshots/channel-selection/44-full.webp",
+      "full": "screenshots/channel-selection/45-full.webp",
       "full_git_blob": "57555dc15f30e913099ac4cfa252b184142c08e1",
-      "thumb": "screenshots/channel-selection/44-thumb.webp",
+      "thumb": "screenshots/channel-selection/45-thumb.webp",
       "thumb_git_blob": "faddb4a9296ba42ace47f604f03d0b97867408b6"
     },
     {
@@ -485,9 +507,9 @@
       "en": "With picon 400x240",
       "width": 1920,
       "height": 1080,
-      "full": "screenshots/channel-selection/45-full.webp",
+      "full": "screenshots/channel-selection/46-full.webp",
       "full_git_blob": "bd37343a135a64de2f46c436a75a4a8c733665c4",
-      "thumb": "screenshots/channel-selection/45-thumb.webp",
+      "thumb": "screenshots/channel-selection/46-thumb.webp",
       "thumb_git_blob": "8a559cb4d021b5056abce2026244d3b577bc50c7"
     },
     {
@@ -496,10 +518,14 @@
       "en": "With ZZPicon",
       "width": 1920,
       "height": 1080,
-      "full": "screenshots/channel-selection/46-full.webp",
+      "full": "screenshots/channel-selection/47-full.webp",
       "full_git_blob": "92f9660ef0b7c935f7436fc2c61ef9c74fed7a71",
-      "thumb": "screenshots/channel-selection/46-thumb.webp",
+      "thumb": "screenshots/channel-selection/47-thumb.webp",
       "thumb_git_blob": "87a6c101a4767f5733053efbeed8192651ed151a"
     }
+  ],
+  "follow_up_used": [
+    "43.jpg",
+    "46.jpg"
   ]
 }

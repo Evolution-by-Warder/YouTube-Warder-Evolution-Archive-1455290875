@@ -127,16 +127,19 @@ class WebsitePortalTests(unittest.TestCase):
         import json,hashlib
         docs=ROOT/"docs"
         data=json.loads((docs/"screenshots/channel-selection/provenance.json").read_text())
-        self.assertEqual(data["source_count"],46)
+        self.assertEqual(data["source_count"],48)
         self.assertEqual(data["duplicates"],{"41.jpg":"40.jpg"})
         items=data["items"]
-        self.assertEqual(len(items),45)
-        self.assertEqual(len({x["full_git_blob"] for x in items}),45)
-        self.assertEqual([x["source"] for x in items],[str(n)+".jpg" for n in range(1,47) if n!=41])
+        self.assertEqual(len(items),47)
+        self.assertEqual(len({x["full_git_blob"] for x in items}),47)
+        self.assertEqual([x["source"] for x in items], [str(n)+".jpg" for n in range(1,41)]+["follow-up/43.jpg","42.jpg","43.jpg","follow-up/46.jpg","44.jpg","45.jpg","46.jpg"])
+        self.assertEqual([x["sk"] for x in items[39:45]],["s PIG","s PIG 2","s PIG 3","s PIG 4","s PIG 5","s PIG 6"])
+        self.assertEqual([x["full"] for x in items],["screenshots/channel-selection/%02d-full.webp"%n for n in range(1,48)])
+        self.assertIn("Pozrite si 47 variantov výberu kanálov",(docs/"fullhdglass.html").read_text())
         page=(docs/"fullhdglass-channel-selection.html").read_text()
         p=Parser();p.feed(page)
         self.assertEqual(len(p.ids),len(set(p.ids)))
-        self.assertEqual(page.count('class="shot-zoom"'),45)
+        self.assertEqual(page.count('class="shot-zoom"'),47)
         self.assertFalse(any(h.lower().endswith(".zip") for h in p.href))
         for item in items:
             self.assertTrue(item["sk"] and item["en"])

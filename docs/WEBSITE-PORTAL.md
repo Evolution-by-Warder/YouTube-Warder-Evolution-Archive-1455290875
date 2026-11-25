@@ -38,3 +38,7 @@ Owner requested moving the existing 78-infobar collection link into the FullHDGl
 ## Channel selection gallery — 25 November 2026
 
 Owner supplied `vyber kanalov.ZIP` and requested an image navigation card between Channel selection and EPG and Skin configuration. Reviewed all 46 original Full HD captures and their selected menu labels. Files 40.jpg and 41.jpg are byte-identical and both show `s PIG`; retained 40.jpg only. 45 unique captures with original Slovak menu names, English translations, Full HD WebP and lazy-loaded WebP thumbnails. The whole fourth card opens the separate gallery; existing product and infobar screenshots remain unchanged. Removed an obsolete sentence claiming type 37 was missing (type 37 is already present and verified). Tests cover order, navigation, image hashes, localization, and fullscreen lightbox. No plugin or release changes.
+
+### Channel selection completeness correction
+
+Owner provided eleven follow-up captures. Visual comparison of the selected `Typ` menu labels identified the two missing variants: `s PIG 2` (follow-up 43.jpg) and `s PIG 5` (follow-up 46.jpg). All 45 previously verified variants retained, original duplicate 41.jpg still excluded. The 47 unique variants are now in correct consecutive gallery order (PIG 1–6, then picon 400x240 and ZZPicon), with 94 WebP assets and revised bilingual count, provenance, and regression checks. Remaining nine follow-up captures show variants already covered and are not duplicated. Web-only, no plugin changes.
