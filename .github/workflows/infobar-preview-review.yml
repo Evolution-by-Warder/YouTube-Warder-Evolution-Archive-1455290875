@@ -1,0 +1,26 @@
+name: One-time pinned infobar archive review
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/infobar-preview-review.yml'
+      - 'tools/collect_infobar_previews.py'
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'Pillow==11.3.0'
+      - run: python tools/collect_infobar_previews.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: original-infobar-preview-review
+          path: infobar-review/
+          retention-days: 3
