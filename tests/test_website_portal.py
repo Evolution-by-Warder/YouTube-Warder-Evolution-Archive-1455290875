@@ -358,3 +358,14 @@ class WebsitePortalTests(unittest.TestCase):
             for lang in ('sk','en','de','ru'):
                 self.assertIn('data-aria-'+lang+'=',links[0])
         self.assertNotIn('class="skull-home"',(docs/'index.html').read_text())
+
+    def test_warder_philosophy_localization(self):
+        import re
+        home=(ROOT/'docs/index.html').read_text()
+        about=re.search(r'<section id="about"[\s\S]*?</section>',home).group(0)
+        for lang,heading,term in (("sk","Na čom staviame.","Asimilácia"),("en","What we build on.","assimilation"),("de","Worauf wir aufbauen.","Assimilation"),("ru","На чём мы строим.","ассимиляция")):
+            translations=re.findall(r'<span class="'+lang+r'" lang="'+lang+r'"[^>]*>(.*?)</span>',about)
+            self.assertIn(heading,translations)
+            self.assertTrue(any(term in t for t in translations),lang)
+            self.assertTrue(any(all(name in t for name in ("FullHDGlass","GSU","Shamann","PiconHub",("Chocholouska" if lang=="sk" else "Chocholousek"),"s3n0","Radio Warder Evolution","oerlgrey","HDF-Radio","YouTube Warder Evolution","Taapat")) for t in translations),lang)
+        self.assertEqual(about.count("<p>"),2)

@@ -104,3 +104,13 @@ Owner requested three smaller orbiting external destinations (OpenATV, OpenPLi, 
 ## Central skull home navigation — 25 November 2026
 
 Owner requested that clicking the stationary skull on any product detail return to the homepage, exactly like the header brand link. Wrapped the existing unmodified image in a native localized home anchor, retained its exact geometry and separate orbit controls. No overlay, image change or layout redesign. All five product pages, keyboard and click navigation tests, and the orbit maintenance guide updated. Website only.
+
+## Warder development philosophy — 25 November 2026
+
+Owner requested a natural, non-clichéd expression of Warder Evolution's philosophy in the homepage About section: assimilation as constructive development and improvement of proven solutions, not destruction or elimination. Updated heading and two concise paragraphs in SK/EN/DE/RU, preserving independent community development, Enigma2 identity and original Shamann attribution. No slogan banner, design, orbit, release data or plugin changes. Added localization and attribution regression checks.
+
+### Expanded original-author acknowledgements — 26 November 2026
+
+Owner requested crediting Shamann for FullHDGlass and GSU, Chocholousek and s3n0 for PiconHub, and Taapat for YouTube. In the four localized About texts, distinguish Chocholousek's source picons from s3n0's original plugin (verified against PiconHub plugin/artwork/provenance/chocholousek/MIGRATION_PLAN.md and plugin/project.json). Credit Taapat for the incorporated and further developed components, as documented in the YouTube engine NOTICE, rather than implying authorship of the entire Warder plugin. FullHDGlass attribution is confirmed by its README; GSU's Shamann attribution is supplied by the owner, with original Glass System Utility lineage confirmed by the GSU README. Existing philosophy, layout, and all other product information unchanged.
+
+Owner additionally requested acknowledging oerlgrey for Radio Warder Evolution. Added credit for work on HDF-Radio in all four languages, based on owner-provided lineage and publicly documented HDF-Radio development posts by oerlgrey (https://www.linuxsat-support.com/thread/153920-plugin-hdf-radio/?postID=932893). No claim of exclusive original authorship or endorsement. All five Warder products now have acknowledgements in the philosophy section.
