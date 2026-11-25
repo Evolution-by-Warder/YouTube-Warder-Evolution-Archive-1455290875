@@ -363,9 +363,9 @@ class WebsitePortalTests(unittest.TestCase):
         import re
         home=(ROOT/'docs/index.html').read_text()
         about=re.search(r'<section id="about"[\s\S]*?</section>',home).group(0)
-        for lang,heading,term in (("sk","Na čom staviame.","Asimilácia"),("en","What we build on.","assimilation"),("de","Worauf wir aufbauen.","Assimilation"),("ru","На чём мы строим.","ассимиляция")):
+        for lang,heading,evolution,assimilation in (("sk","Na čom staviame.","Evolúcia","asimiláciu"),("en","What we build on.","evolution","assimilating"),("de","Worauf wir aufbauen.","Evolution","assimilieren"),("ru","На чём мы строим.","эволюция","ассимиляцию")):
             translations=re.findall(r'<span class="'+lang+r'" lang="'+lang+r'"[^>]*>(.*?)</span>',about)
             self.assertIn(heading,translations)
-            self.assertTrue(any(term in t for t in translations),lang)
+            self.assertTrue(any(evolution in t and assimilation in t for t in translations),lang)
             self.assertTrue(any(all(name in t for name in ("FullHDGlass","GSU","Shamann","PiconHub",("Chocholouska" if lang=="sk" else "Chocholousek"),"s3n0","Radio Warder Evolution","oerlgrey","HDF-Radio","YouTube Warder Evolution","Taapat")) for t in translations),lang)
         self.assertEqual(about.count("<p>"),2)
