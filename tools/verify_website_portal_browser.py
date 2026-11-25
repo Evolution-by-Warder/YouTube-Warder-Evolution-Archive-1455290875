@@ -100,6 +100,10 @@ try:
             assert cards.nth(1).get_attribute('href')=='fullhdglass-infobars.html'
             assert cards.nth(2).get_attribute('href')=='screenshots/glass/02-full.webp'
             assert cards.nth(3).get_attribute('href')=='fullhdglass-channel-selection.html'
+            card_image=cards.nth(3).locator("img")
+            assert card_image.get_attribute("src")=="screenshots/channel-selection/card-preview-pig.webp"
+            card_image.scroll_into_view_if_needed()
+            page.wait_for_function("document.querySelector('a[href=\"fullhdglass-channel-selection.html\"] img').naturalWidth===428")
             assert cards.nth(4).get_attribute('href')=='screenshots/glass/03-full.webp'
             cards.nth(1).click()
             page.wait_for_url("**/fullhdglass-infobars.html")

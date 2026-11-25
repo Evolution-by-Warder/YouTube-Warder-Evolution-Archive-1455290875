@@ -50,3 +50,7 @@ Owner requested replacing all 47 configuration-screen screenshots in the channel
 ## Additional FullHDGlass receiver screenshots — 25 November 2026
 
 Owner supplied seven further captures and explicitly confirmed that all belong solely to the skin, not the separate Radio plugin. Added Multi EPG, programme details/TMDB, infobar weather, extended weather forecast and the integrated FullHDGlass radio mode on IPTV, DVB-S and DAB. Source captures: `1(20261125-213650).jpg`, `2(20261125-213650).jpg`, `3(20261125-213650).jpg`, `4(20261125-213650).jpg`, `5(9).jpg`, `6(6).jpg`, `7(6).jpg`. Seven Full HD WebP images and seven optimized previews, bilingual captions and verified Git blobs. Main FullHDGlass gallery now contains 12 genuine screenshots plus two collection links (14 cards); total product screenshots 40. Existing collections, card order and standalone Radio gallery remain unchanged. Updated structural and browser test counts. Web only.
+
+## Channel selection collection card image — 25 November 2026
+
+Owner requested a concrete channel-selection panel without any settings/help bubble or arrow. Changed the fourth FullHDGlass gallery card to the existing verified `s PIG` native crop (variant 40, 428 × 185 pixels). Its dedicated asset URL uses the exact same Git blob as the gallery entry, avoiding stale cached full-screen images. Collection link and all other content unchanged. Added source and browser regression checks.

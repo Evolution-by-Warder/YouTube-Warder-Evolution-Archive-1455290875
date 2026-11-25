@@ -157,3 +157,9 @@ class WebsitePortalTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha1(("blob %d\0"%len(b)).encode()+b).hexdigest(),item[kind+"_git_blob"])
                 self.assertIn(item[kind],p.href if kind=="full" else p.src)
         self.assertNotIn("V dodanej kolekcii nie je samostatný záber typu 37.",(docs/"fullhdglass-infobars.html").read_text())
+
+    def test_channel_selection_card_uses_clean_pig_crop(self):
+        docs=ROOT/"docs"
+        source=(docs/"fullhdglass.html").read_text()
+        self.assertIn('src="screenshots/channel-selection/card-preview-pig.webp" width="428" height="185"',source)
+        self.assertEqual((docs/"screenshots/channel-selection/card-preview-pig.webp").read_bytes(),(docs/"screenshots/channel-selection/40-full.webp").read_bytes())
