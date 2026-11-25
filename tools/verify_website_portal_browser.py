@@ -93,6 +93,32 @@ try:
                 assert page.locator("html").get_attribute("lang") == "sk"
                 page.locator("button[data-lang='en']").click()
                 checked.append(product_page)
+            page.goto(url.replace('index.html','fullhdglass.html'),wait_until="domcontentloaded")
+            page.locator('#screenshots a[href="fullhdglass-infobars.html"]').click()
+            page.wait_for_url("**/fullhdglass-infobars.html")
+            variants=page.locator("#infobars .screenshot-grid a")
+            assert variants.count()==77
+            page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
+            page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" infobar EN overflow"
+            variants.first.click()
+            dialog=page.locator("dialog.screenshot-dialog")
+            assert dialog.is_visible()
+            page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
+            assert "1 / 77" in dialog.locator(".screenshot-caption").inner_text()
+            page.keyboard.press("ArrowRight")
+            assert "2 / 77" in dialog.locator(".screenshot-caption").inner_text()
+            page.keyboard.press("Escape")
+            dialog.wait_for(state="detached")
+            page.locator("button[data-lang='sk']").click()
+            variants.last.click()
+            assert "Infobar typu 99" in dialog.locator(".screenshot-caption").inner_text()
+            page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
+            page.keyboard.press("Escape")
+            dialog.wait_for(state="detached")
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" infobar SK overflow"
+            page.locator(".crumb a").click()
+            page.wait_for_url("**/fullhdglass.html#screenshots")
             assert not errors, errors
             report.append({"viewport": name, "width": width, "height": height,
                            "products": 5, "loaded_images": page.locator("img").count(),

@@ -85,3 +85,28 @@ class WebsitePortalTests(unittest.TestCase):
                     self.assertEqual(b[8:12],b'WEBP')
                     self.assertEqual(hashlib.sha1(('blob %d\0'%len(b)).encode()+b).hexdigest(),item[kind+'_git_blob'])
                     self.assertIn(item[kind],source)
+
+    def test_fullhdglass_infobar_gallery(self):
+        import json,hashlib
+        docs=ROOT/'docs'
+        data=json.loads((docs/'screenshots/infobars/provenance.json').read_text())
+        items=data['items']
+        self.assertEqual(len(items),77)
+        self.assertEqual([r['type'] for r in items],list(range(1,37))+list(range(38,66))+list(range(70,78))+[87,88,89,98,99])
+        self.assertEqual(next(r for r in items if r['type']==38)['source'],'37.jpg')
+        page=(docs/'fullhdglass-infobars.html').read_text()
+        p=Parser();p.feed(page)
+        self.assertEqual(len(p.ids),len(set(p.ids)))
+        self.assertEqual(page.count('class="shot-zoom"'),77)
+        self.assertIn('fullhdglass-infobars.html',(docs/'fullhdglass.html').read_text())
+        self.assertFalse(any(h.lower().endswith('.zip') for h in p.href))
+        for item in items:
+            self.assertEqual((item['width'],item['height']),(1920,1080))
+            self.assertIn('Infobar type '+str(item['type']),page)
+            self.assertIn('Infobar typu '+str(item['type']),page)
+            for kind in ('full','thumb'):
+                b=(docs/item[kind]).read_bytes()
+                self.assertEqual(b[:4],b'RIFF')
+                self.assertEqual(b[8:12],b'WEBP')
+                self.assertEqual(hashlib.sha1(('blob %d\0'%len(b)).encode()+b).hexdigest(),item[kind+'_git_blob'])
+                self.assertIn(item[kind],p.href if kind=='full' else p.src)
