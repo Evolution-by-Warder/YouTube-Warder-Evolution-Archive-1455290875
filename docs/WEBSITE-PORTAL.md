@@ -104,3 +104,7 @@ Owner requested three smaller orbiting external destinations (OpenATV, OpenPLi, 
 ## Central skull home navigation — 25 November 2026
 
 Owner requested that clicking the stationary skull on any product detail return to the homepage, exactly like the header brand link. Wrapped the existing unmodified image in a native localized home anchor, retained its exact geometry and separate orbit controls. No overlay, image change or layout redesign. All five product pages, keyboard and click navigation tests, and the orbit maintenance guide updated. Website only.
+
+## Warder development philosophy — 25 November 2026
+
+Owner requested a natural, non-clichéd expression of Warder Evolution's philosophy in the homepage About section: assimilation as constructive development and improvement of proven solutions, not destruction or elimination. Updated heading and two concise paragraphs in SK/EN/DE/RU, preserving independent community development, Enigma2 identity and original Shamann attribution. No slogan banner, design, orbit, release data or plugin changes. Added localization and attribution regression checks.
