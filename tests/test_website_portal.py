@@ -9,8 +9,8 @@ class Parser(HTMLParser):
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
         if 'id' in a: self.ids.append(a['id'])
-        if 'href' in a: self.href.append(a['href'].split('?',1)[0] if a['href'].startswith('portal.css?') else a['href'])
-        if 'src' in a: self.src.append(a['src'].split('?',1)[0] if a['src'].startswith('portal.js?') else a['src'])
+        if 'href' in a: self.href.append(a['href'].split('?',1)[0] if a['href'].startswith(('portal.css?','portal-art/skull.png?')) else a['href'])
+        if 'src' in a: self.src.append(a['src'].split('?',1)[0] if a['src'].startswith(('portal.js?','portal-art/skull.png?')) else a['src'])
         if 'lang' in a: self.lang.append(a['lang'])
 class WebsitePortalTests(unittest.TestCase):
     def test_portal_assets_links_and_products(self):
@@ -231,7 +231,7 @@ class WebsitePortalTests(unittest.TestCase):
         docs=ROOT/"docs"
         for filename in ("index.html","fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html","fullhdglass-infobars.html","fullhdglass-channel-selection.html"):
             page=(docs/filename).read_text()
-            self.assertIn('href="portal.css?v=20261125-langfix2"',page)
+            self.assertIn('href="portal.css?v=20261125-skull1"',page)
             self.assertIn('src="portal.js?v=20261125-langfix2"',page)
             self.assertIn('id="warder-language-guard"',page)
             for lang in ("en","de","ru"):
@@ -260,3 +260,25 @@ class WebsitePortalTests(unittest.TestCase):
             if filename=="fullhdglass.html":
                 self.assertIn("MIPS/MIPSEL",paragraph)
                 self.assertIn("ARM/AArch64",paragraph)
+
+    def test_restored_skull_source(self):
+        import struct,zlib,re
+        docs=ROOT/"docs"
+        b=(docs/"portal-art/skull.png").read_bytes()
+        self.assertEqual(b[:8],b"\x89PNG\r\n\x1a\n")
+        w,h,depth,color=struct.unpack(">IIBB",b[16:26])
+        self.assertEqual((w,h,depth,color),(425,445,8,6))
+        pos=8; packed=[]
+        while pos<len(b):
+            n=struct.unpack(">I",b[pos:pos+4])[0]
+            if b[pos+4:pos+8]==b"IDAT": packed.append(b[pos+8:pos+8+n])
+            pos+=12+n
+        raw=zlib.decompress(b"".join(packed)); stride=w*4+1
+        self.assertEqual(len(raw),stride*h)
+        self.assertTrue(all(raw[y*stride]==0 for y in range(h)))
+        alpha=lambda x,y:raw[y*stride+1+x*4+3]
+        self.assertTrue(all(alpha(x,y)==0 for x in (0,w-1) for y in range(h)))
+        self.assertGreater(alpha(25,226),100)
+        self.assertGreater(alpha(399,226),100)
+        self.assertNotIn("mask-image",re.search(r"\.skull\{([^}]+)\}",(docs/"portal.css").read_text()).group(1))
+        self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1" alt="" width="425" height="445"',(docs/"index.html").read_text())

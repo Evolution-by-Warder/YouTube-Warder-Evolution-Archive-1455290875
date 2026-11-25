@@ -30,6 +30,7 @@ try:
             page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
             page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)", timeout=45000)
             page.evaluate("document.fonts.ready")
+            assert page.locator(".skull").evaluate("""e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect(),s=getComputedStyle(e);return e.naturalWidth===425 && e.naturalHeight===445 && s.objectFit===\'contain\' && s.maskImage===\'none\' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}""")
             assert page.locator(".product").count() == 5
             assert page.locator("h1").inner_text() == "WARDER\nEVOLUTION"
             assert page.locator("html").get_attribute("lang") == "sk"
