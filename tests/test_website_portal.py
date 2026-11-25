@@ -65,3 +65,24 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertNotIn('portal-art/gallery/',source)
             self.assertNotIn('weather-wind-help.png',source)
             self.assertNotIn('weather-uv-help.png',source)
+
+    def test_receiver_gallery_payload_when_present(self):
+        import json,base64
+        docs=ROOT/'docs'
+        for name in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
+            self.assertIn('receiver-gallery.js',(docs/name).read_text())
+        path=docs/'warder-product-screenshots.json'
+        if not path.is_file():return
+        data=json.loads(path.read_text())
+        self.assertEqual(data['schema'],1)
+        self.assertEqual(set(data['products']),{'glass','picon','radio','youtube','gsu'})
+        self.assertGreaterEqual(sum(len(x) for x in data['products'].values()),31)
+        for items in list(data['products'].values())+[data.get('variants',[])]:
+            for item in items:
+                self.assertTrue(item['en'] and item['sk'])
+                for field in ('full','thumb'):
+                    prefix,encoded=item[field].split(',',1)
+                    self.assertIn(prefix,('data:image/webp;base64','data:image/png;base64','data:image/jpeg;base64'))
+                    self.assertTrue(base64.b64decode(encoded,validate=True))
+                self.assertGreater(item['width'],0)
+                self.assertGreater(item['height'],0)
