@@ -108,3 +108,7 @@ Owner requested that clicking the stationary skull on any product detail return 
 ## Warder development philosophy — 25 November 2026
 
 Owner requested a natural, non-clichéd expression of Warder Evolution's philosophy in the homepage About section: assimilation as constructive development and improvement of proven solutions, not destruction or elimination. Updated heading and two concise paragraphs in SK/EN/DE/RU, preserving independent community development, Enigma2 identity and original Shamann attribution. No slogan banner, design, orbit, release data or plugin changes. Added localization and attribution regression checks.
+
+### Expanded original-author acknowledgements — 26 November 2026
+
+Owner requested crediting Shamann for FullHDGlass and GSU, Chocholousek and s3n0 for PiconHub, and Taapat for YouTube. In the four localized About texts, distinguish Chocholousek's source picons from s3n0's original plugin (verified against PiconHub plugin/artwork/provenance/chocholousek/MIGRATION_PLAN.md and plugin/project.json). Credit Taapat for the incorporated and further developed components, as documented in the YouTube engine NOTICE, rather than implying authorship of the entire Warder plugin. FullHDGlass attribution is confirmed by its README; GSU's Shamann attribution is supplied by the owner, with original Glass System Utility lineage confirmed by the GSU README. Existing philosophy, layout, and all other product information unchanged.
