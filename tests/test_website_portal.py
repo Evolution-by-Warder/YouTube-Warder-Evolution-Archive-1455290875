@@ -118,7 +118,33 @@ class WebsitePortalTests(unittest.TestCase):
         source=(ROOT/"docs/fullhdglass.html").read_text()
         grid=source.split('id="screenshots"',1)[1].split("</section>",1)[0]
         links=re.findall(r'<figure[^>]*><a href="([^"]+)"',grid)
-        self.assertEqual(links,["screenshots/glass/01-full.webp","fullhdglass-infobars.html","screenshots/glass/02-full.webp","screenshots/glass/03-full.webp","screenshots/glass/04-full.webp","screenshots/glass/05-full.webp"])
+        self.assertEqual(links,["screenshots/glass/01-full.webp","fullhdglass-infobars.html","screenshots/glass/02-full.webp","fullhdglass-channel-selection.html","screenshots/glass/03-full.webp","screenshots/glass/04-full.webp","screenshots/glass/05-full.webp"])
         self.assertIn('src="screenshots/infobars/37-full.webp"',grid)
         self.assertEqual(grid.count('href="fullhdglass-infobars.html"'),1)
         self.assertIn("Pozrite si 78 typov infobarov",grid)
+
+    def test_channel_selection_gallery(self):
+        import json,hashlib
+        docs=ROOT/"docs"
+        data=json.loads((docs/"screenshots/channel-selection/provenance.json").read_text())
+        self.assertEqual(data["source_count"],46)
+        self.assertEqual(data["duplicates"],{"41.jpg":"40.jpg"})
+        items=data["items"]
+        self.assertEqual(len(items),45)
+        self.assertEqual(len({x["full_git_blob"] for x in items}),45)
+        self.assertEqual([x["source"] for x in items],[str(n)+".jpg" for n in range(1,47) if n!=41])
+        page=(docs/"fullhdglass-channel-selection.html").read_text()
+        p=Parser();p.feed(page)
+        self.assertEqual(len(p.ids),len(set(p.ids)))
+        self.assertEqual(page.count('class="shot-zoom"'),45)
+        self.assertFalse(any(h.lower().endswith(".zip") for h in p.href))
+        for item in items:
+            self.assertTrue(item["sk"] and item["en"])
+            self.assertEqual((item["width"],item["height"]),(1920,1080))
+            for kind in ("full","thumb"):
+                b=(docs/item[kind]).read_bytes()
+                self.assertEqual(b[:4],b"RIFF")
+                self.assertEqual(b[8:12],b"WEBP")
+                self.assertEqual(hashlib.sha1(("blob %d\0"%len(b)).encode()+b).hexdigest(),item[kind+"_git_blob"])
+                self.assertIn(item[kind],p.href if kind=="full" else p.src)
+        self.assertNotIn("V dodanej kolekcii nie je samostatný záber typu 37.",(docs/"fullhdglass-infobars.html").read_text())
