@@ -95,6 +95,9 @@ try:
                     page.locator("#screenshots").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-screenshots.png")),animations="disabled")
                 page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
                 assert page.locator(".feature-card").count() == 8
+                compatibility=page.locator(".install-panel h3").filter(has_text="Compatibility").locator("xpath=following-sibling::p[1]")
+                assert compatibility.count()==1
+                assert all(token in compatibility.inner_text() for token in ("Enigma2","images","OpenATV","OpenPLi"))
                 assert page.locator(".family-card").count() == 4
                 assert page.locator("a[href$='.ipk']").count() == 2
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), product_page+" "+name+" EN overflow"

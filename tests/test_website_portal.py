@@ -240,3 +240,23 @@ class WebsitePortalTests(unittest.TestCase):
                 self.assertTrue(all(" hidden>" in tag for tag in tags),filename)
             self.assertNotIn('<span class="sk" lang="sk" hidden>',page)
         self.assertIn('el.hidden=el.getAttribute("lang")!==lang',(docs/"portal.js").read_text())
+
+    def test_compatibility_distinguishes_images_from_receivers(self):
+        import re
+        docs=ROOT/"docs"
+        for filename in ("fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html"):
+            source=(docs/filename).read_text()
+            match=re.search(r'<h3><span class="sk" lang="sk">Kompatibilita</span>.*?</h3><p>(.*?)</p>',source,re.S)
+            self.assertIsNotNone(match,filename)
+            paragraph=match.group(1)
+            for lang,word in (("sk","image"),("en","images"),("de","Images"),("ru","образ")):
+                span=re.search(r'<span class="'+lang+r'" lang="'+lang+r'"(?: hidden)?>(.*?)</span>',paragraph,re.S)
+                self.assertIsNotNone(span,filename)
+                text=span.group(1)
+                for token in ("Enigma2","OpenATV","OpenPLi",word):
+                    self.assertIn(token,text,filename)
+            self.assertNotIn("prijímače OpenATV",paragraph)
+            self.assertNotIn("OpenATV and OpenPLi receivers",paragraph)
+            if filename=="fullhdglass.html":
+                self.assertIn("MIPS/MIPSEL",paragraph)
+                self.assertIn("ARM/AArch64",paragraph)
