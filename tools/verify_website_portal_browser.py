@@ -134,11 +134,12 @@ try:
             assert [channels.nth(i).get_attribute('data-caption-sk') for i in range(39,45)] == ['s PIG','s PIG 2','s PIG 3','s PIG 4','s PIG 5','s PIG 6']
             page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
             page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
+            assert channels.locator("img").evaluate_all("imgs=>imgs.every(i=>i.naturalWidth===Number(i.getAttribute('width')) && i.naturalHeight===Number(i.getAttribute('height')) && i.naturalWidth<440)")
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" channel EN overflow"
             channels.first.click()
             dialog=page.locator("dialog.screenshot-dialog")
             assert "1 / 47" in dialog.locator(".screenshot-caption").inner_text()
-            page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
+            page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===412")
             page.keyboard.press("ArrowRight")
             assert "2 / 47" in dialog.locator(".screenshot-caption").inner_text()
             page.keyboard.press("Escape")
