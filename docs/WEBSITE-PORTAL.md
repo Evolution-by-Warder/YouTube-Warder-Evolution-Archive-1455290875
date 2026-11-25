@@ -84,3 +84,11 @@ Owner reported a clipped right side and dark artifacts on the homepage and expli
 ## Animated product solar system — 25 November 2026
 
 Owner approved five moving plugin planets around the stationary original Warder skull, with automatic addition of future projects and permanently recorded editable sources. Source: [portal-orbit.js](portal-orbit.js), [portal-orbit.css](portal-orbit.css), [maintenance guide WEBSITE-ORBIT.md](WEBSITE-ORBIT.md). One orbit per 38 seconds, upright names, linked product cards, pause and reduced-motion support. The product catalog is the sole source of planet count, names and links. Original repaired PNG, plugin packages and other pages unchanged. Browser checks cover actual motion, pause, viewport containment and automatic sixth-planet addition/removal. Web only.
+
+## Single-planet product showrooms — 25 November 2026
+
+Owner requested the homepage-style animated orbit on each individual product page, with only that product's planet orbiting the original stationary skull. All five detail heroes now use the shared portal-orbit.js/CSS engine in single mode, matching the homepage's product name, color and icon. Pause and reduced-motion support retained, no self-navigation link on a detail planet. Original product graphics preserved in the homepage catalog and repository; no plugin, package, legal or gallery changes. Maintenance instructions updated in WEBSITE-ORBIT.md. Regression checks cover exact identity, one planet per detail, motion, viewport containment and unchanged homepage behavior.
+
+### Planet interactions — 25 November 2026
+
+Owner clarified: homepage planets navigate directly to the corresponding product; the single planet on a detail opens a compact product information bubble instead. Bubble reads localized intro, existing version and status and first three feature titles from the detail page, with no duplicated release data. Native dialog, keyboard and outside dismissal, pause while open. Shared sources and maintenance guide updated. Website only.
