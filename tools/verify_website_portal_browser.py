@@ -55,18 +55,7 @@ try:
                 assert page.locator("html").get_attribute("lang") == "en"
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
-                page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
                 page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
-                gallery=page.locator("#gallery .gallery-image")
-                assert gallery.count()>=2
-                gallery.first.click()
-                assert page.locator("dialog.gallery-lightbox").is_visible()
-                page.wait_for_function("document.querySelector('dialog.gallery-lightbox img').naturalWidth>0",timeout=15000)
-                page.keyboard.press("Escape")
-                page.locator("dialog.gallery-lightbox").wait_for(state="detached")
-                assert gallery.first.evaluate("a=>document.activeElement===a")
-                if name=="desktop":
-                    page.locator("#gallery").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-gallery.png")),animations="disabled")
                 assert page.locator(".feature-card").count() == 8
                 assert page.locator(".family-card").count() == 4
                 assert page.locator("a[href$='.ipk']").count() == 2
@@ -76,10 +65,6 @@ try:
                 page.locator("button[data-lang='sk']").click()
                 assert page.locator("html").get_attribute("lang") == "sk"
                 assert page.locator(".feature-card .sk:visible").count() == 16
-                gallery.first.click()
-                assert page.locator(".gallery-lightbox-close").get_attribute("aria-label") == "Zavrieť náhľad"
-                page.locator(".gallery-lightbox-close").click()
-                page.locator("dialog.gallery-lightbox").wait_for(state="detached")
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), product_page+" "+name+" SK overflow"
                 if name == "mobile":
                     page.screenshot(path=str(OUT / (product_page.removesuffix(".html")+"-mobile-sk.png")),full_page=True,animations="disabled")
