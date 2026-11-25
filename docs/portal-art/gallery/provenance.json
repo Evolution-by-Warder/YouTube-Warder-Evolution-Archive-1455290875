@@ -1,0 +1,162 @@
+[
+  {
+    "destination": "portal-art/gallery/glass/wind.png",
+    "source_repository": "Evolution-by-Warder/FullHDGlass-Warder-Evolution",
+    "source_ref": "08b5e6fe2870d8d6908b780c7a31ac18046da009",
+    "source_path": "source/package-root/usr/lib/enigma2/python/Plugins/Extensions/setupGlass17/images/help/weather-wind-help.png",
+    "git_blob_sha": "b45d124900c01f5cce9014b2228e28e66d66bf5d",
+    "kind": "original product artwork",
+    "caption_en": "Forecast and wind",
+    "caption_sk": "Predpoveď a vietor"
+  },
+  {
+    "destination": "portal-art/gallery/glass/uv.png",
+    "source_repository": "Evolution-by-Warder/FullHDGlass-Warder-Evolution",
+    "source_ref": "08b5e6fe2870d8d6908b780c7a31ac18046da009",
+    "source_path": "source/package-root/usr/lib/enigma2/python/Plugins/Extensions/setupGlass17/images/help/weather-uv-help.png",
+    "git_blob_sha": "e82187b86bb30b2d7ee61c9cae50872dada068eb",
+    "kind": "original product artwork",
+    "caption_en": "UV index",
+    "caption_sk": "UV index"
+  },
+  {
+    "destination": "portal-art/gallery/picon/transparent.png",
+    "source_repository": "Evolution-by-Warder/PiconHub-Warder-Evolution",
+    "source_ref": "36c2ee583a073f28aa134f26f960556ee0585b25",
+    "source_path": "plugin/src/Plugins/Extensions/WarderPiconHub/images/preview-transparent.png",
+    "git_blob_sha": "c5e1460a3f07d3eab0569be91d5cc6ac377b06e3",
+    "kind": "original product artwork",
+    "caption_en": "Transparent",
+    "caption_sk": "Transparentné"
+  },
+  {
+    "destination": "portal-art/gallery/picon/white.png",
+    "source_repository": "Evolution-by-Warder/PiconHub-Warder-Evolution",
+    "source_ref": "36c2ee583a073f28aa134f26f960556ee0585b25",
+    "source_path": "plugin/src/Plugins/Extensions/WarderPiconHub/images/preview-white.png",
+    "git_blob_sha": "746e08460ee4ebe5a53316db0f7eef6b8faf13d7",
+    "kind": "original product artwork",
+    "caption_en": "White",
+    "caption_sk": "Biele"
+  },
+  {
+    "destination": "portal-art/gallery/picon/black.png",
+    "source_repository": "Evolution-by-Warder/PiconHub-Warder-Evolution",
+    "source_ref": "36c2ee583a073f28aa134f26f960556ee0585b25",
+    "source_path": "plugin/src/Plugins/Extensions/WarderPiconHub/images/preview-black.png",
+    "git_blob_sha": "8a9549ff8104f1c304047101f0256cfc1c858d27",
+    "kind": "original product artwork",
+    "caption_en": "Black",
+    "caption_sk": "Čierne"
+  },
+  {
+    "destination": "portal-art/gallery/radio/spectrum.png",
+    "source_repository": "Evolution-by-Warder/Radio-Warder-Evolution",
+    "source_ref": "0c540f72bbe47e8ba2020b6e7ecff64c8a9edb44",
+    "source_path": "src/WarderRadio/artwork/spectrum/frame-00.png",
+    "git_blob_sha": "75fd31268c8aecbd6564fc319c06ce4e33c69455",
+    "kind": "original product artwork",
+    "caption_en": "Spectrum animation frame",
+    "caption_sk": "Snímka animácie spektra"
+  },
+  {
+    "destination": "portal-art/gallery/radio/country.png",
+    "source_repository": "Evolution-by-Warder/Radio-Warder-Evolution",
+    "source_ref": "0c540f72bbe47e8ba2020b6e7ecff64c8a9edb44",
+    "source_path": "src/WarderRadio/artwork/menu/country.png",
+    "git_blob_sha": "f9653dd85de89f42f60d026e403321a98488c648",
+    "kind": "original product artwork",
+    "caption_en": "Country",
+    "caption_sk": "Krajina"
+  },
+  {
+    "destination": "portal-art/gallery/radio/home.png",
+    "source_repository": "Evolution-by-Warder/Radio-Warder-Evolution",
+    "source_ref": "0c540f72bbe47e8ba2020b6e7ecff64c8a9edb44",
+    "source_path": "src/WarderRadio/artwork/menu/home.png",
+    "git_blob_sha": "c499ac032f73c5066abd32f624de3654e6eb0ade",
+    "kind": "original product artwork",
+    "caption_en": "Home",
+    "caption_sk": "Domov"
+  },
+  {
+    "destination": "portal-art/gallery/radio/favourites.png",
+    "source_repository": "Evolution-by-Warder/Radio-Warder-Evolution",
+    "source_ref": "0c540f72bbe47e8ba2020b6e7ecff64c8a9edb44",
+    "source_path": "src/WarderRadio/artwork/menu/favourites.png",
+    "git_blob_sha": "1d733fd96281fa4947c93231e6792e3b37911e24",
+    "kind": "original product artwork",
+    "caption_en": "Favourites",
+    "caption_sk": "Obľúbené"
+  },
+  {
+    "destination": "portal-art/gallery/radio/history.png",
+    "source_repository": "Evolution-by-Warder/Radio-Warder-Evolution",
+    "source_ref": "0c540f72bbe47e8ba2020b6e7ecff64c8a9edb44",
+    "source_path": "src/WarderRadio/artwork/menu/history.png",
+    "git_blob_sha": "5caf276db58df7ae16eae4380e038fbf28f6ea93",
+    "kind": "original product artwork",
+    "caption_en": "History",
+    "caption_sk": "História"
+  },
+  {
+    "destination": "portal-art/gallery/youtube/header.png",
+    "source_repository": "Evolution-by-Warder/YouTube-Warder-Evolution",
+    "source_ref": "7d8750a56a25727d0aa444c88d4f66cda47f718a",
+    "source_path": "plugin/Plugins/Extensions/WarderYouTube/images/warder_header.png",
+    "git_blob_sha": "5cc0a9b3827c803ca8cc736148e924c259de9bf0",
+    "kind": "original product artwork",
+    "caption_en": "Full HD header",
+    "caption_sk": "Full HD záhlavie"
+  },
+  {
+    "destination": "portal-art/gallery/youtube/plugin.png",
+    "source_repository": "Evolution-by-Warder/YouTube-Warder-Evolution",
+    "source_ref": "7d8750a56a25727d0aa444c88d4f66cda47f718a",
+    "source_path": "plugin/Plugins/Extensions/WarderYouTube/images/plugin_fhd.png",
+    "git_blob_sha": "776fc55a33b96d09d3172559688f03cae8338d7e",
+    "kind": "original product artwork",
+    "caption_en": "Plugin browser icon",
+    "caption_sk": "Ikona zoznamu pluginov"
+  },
+  {
+    "destination": "portal-art/gallery/gsu/cpu.png",
+    "source_repository": "Evolution-by-Warder/GSU-Warder-Evolution",
+    "source_ref": "b173e1cdf7eb30d11821129ba3a0d14971813d76",
+    "source_path": "plugin/src/GlassSysUtil/images/system-cpu.png",
+    "git_blob_sha": "519653e0ac76dbb3a7a335c332db7d54e3d3f7eb",
+    "kind": "original product artwork",
+    "caption_en": "Processor",
+    "caption_sk": "Procesor"
+  },
+  {
+    "destination": "portal-art/gallery/gsu/mem.png",
+    "source_repository": "Evolution-by-Warder/GSU-Warder-Evolution",
+    "source_ref": "b173e1cdf7eb30d11821129ba3a0d14971813d76",
+    "source_path": "plugin/src/GlassSysUtil/images/system-mem.png",
+    "git_blob_sha": "d50e20aa62d38ff5fb55165b450f9c025c658ee5",
+    "kind": "original product artwork",
+    "caption_en": "Memory",
+    "caption_sk": "Pamäť"
+  },
+  {
+    "destination": "portal-art/gallery/gsu/hdd.png",
+    "source_repository": "Evolution-by-Warder/GSU-Warder-Evolution",
+    "source_ref": "b173e1cdf7eb30d11821129ba3a0d14971813d76",
+    "source_path": "plugin/src/GlassSysUtil/images/system-hdd.png",
+    "git_blob_sha": "8f273699fc8e6fff5edca901333ae1ffc5f9b19f",
+    "kind": "original product artwork",
+    "caption_en": "Storage",
+    "caption_sk": "Úložisko"
+  },
+  {
+    "destination": "portal-art/gallery/gsu/sensor.png",
+    "source_repository": "Evolution-by-Warder/GSU-Warder-Evolution",
+    "source_ref": "b173e1cdf7eb30d11821129ba3a0d14971813d76",
+    "source_path": "plugin/src/GlassSysUtil/images/system-sensor.png",
+    "git_blob_sha": "0e53ba0029631198c285fde0b353ce66ae5fc159",
+    "kind": "original product artwork",
+    "caption_en": "Sensors",
+    "caption_sk": "Snímače"
+  }
+]
