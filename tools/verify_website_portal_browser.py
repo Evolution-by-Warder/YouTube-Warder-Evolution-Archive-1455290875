@@ -55,21 +55,22 @@ try:
                 assert page.locator("html").get_attribute("lang") == "en"
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
-                # Verify gallery behaviour if the approved payload has been uploaded.
-                if (ROOT / "docs/warder-product-screenshots.json").is_file():
-                    gallery=page.locator("#screenshots .receiver-gallery-link")
-                    gallery.first.wait_for(state="visible",timeout=45000)
-                    assert gallery.count()>=3
-                    gallery.first.click()
-                    dialog=page.locator("dialog.screenshot-dialog")
-                    assert dialog.is_visible()
-                    page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth>0")
-                    page.keyboard.press("ArrowRight")
-                    assert dialog.locator(".screenshot-caption").inner_text().startswith("2 /")
-                    page.keyboard.press("Escape")
-                    dialog.wait_for(state="detached")
-                    assert gallery.first.evaluate("a=>document.activeElement===a")
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
+                gallery=page.locator("#screenshots .screenshot-grid a")
+                expected={"fullhdglass.html":5,"piconhub.html":3,"gsu.html":7,"radio.html":8,"youtube-warder.html":8}
+                assert gallery.count()==expected[product_page]
+                gallery.first.click()
+                dialog=page.locator("dialog.screenshot-dialog")
+                assert dialog.is_visible()
+                page.wait_for_function("document.querySelector('dialog.screenshot-dialog img').naturalWidth===1920")
+                assert dialog.locator("button").first.is_disabled()
+                page.keyboard.press("ArrowRight")
+                assert dialog.locator(".screenshot-caption").inner_text().startswith("2 /")
+                page.keyboard.press("Escape")
+                dialog.wait_for(state="detached")
+                assert gallery.first.evaluate("a=>document.activeElement===a")
+                if name=="desktop":
+                    page.locator("#screenshots").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-screenshots.png")),animations="disabled")
                 page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
                 assert page.locator(".feature-card").count() == 8
                 assert page.locator(".family-card").count() == 4
@@ -80,6 +81,10 @@ try:
                 page.locator("button[data-lang='sk']").click()
                 assert page.locator("html").get_attribute("lang") == "sk"
                 assert page.locator(".feature-card .sk:visible").count() == 16
+                gallery.first.click()
+                assert page.locator("dialog.screenshot-dialog").get_attribute("aria-label")=="Galéria snímok"
+                page.locator("dialog.screenshot-dialog button[aria-label=\"Zavrieť\"]").click()
+                page.locator("dialog.screenshot-dialog").wait_for(state="detached")
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), product_page+" "+name+" SK overflow"
                 if name == "mobile":
                     page.screenshot(path=str(OUT / (product_page.removesuffix(".html")+"-mobile-sk.png")),full_page=True,animations="disabled")

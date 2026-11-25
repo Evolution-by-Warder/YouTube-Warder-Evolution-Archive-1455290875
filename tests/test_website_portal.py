@@ -66,23 +66,22 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertNotIn('weather-wind-help.png',source)
             self.assertNotIn('weather-uv-help.png',source)
 
-    def test_receiver_gallery_payload_when_present(self):
-        import json,base64
+    def test_real_receiver_galleries(self):
+        import json,hashlib
         docs=ROOT/'docs'
-        for name in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
-            self.assertIn('receiver-gallery.js',(docs/name).read_text())
-        path=docs/'warder-product-screenshots.json'
-        if not path.is_file():return
-        data=json.loads(path.read_text())
-        self.assertEqual(data['schema'],1)
-        self.assertEqual(set(data['products']),{'glass','picon','radio','youtube','gsu'})
-        self.assertGreaterEqual(sum(len(x) for x in data['products'].values()),31)
-        for items in list(data['products'].values())+[data.get('variants',[])]:
+        data=json.loads((docs/'screenshots/provenance.json').read_text())
+        pages={'glass':'fullhdglass.html','picon':'piconhub.html','gsu':'gsu.html','radio':'radio.html','youtube':'youtube-warder.html'}
+        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':5,'picon':3,'gsu':7,'radio':8,'youtube':8})
+        for key,items in data['products'].items():
+            source=(docs/pages[key]).read_text()
+            self.assertIn('id="screenshots"',source)
+            self.assertEqual(source.count('class="shot-zoom"'),len(items))
             for item in items:
+                self.assertEqual((item['width'],item['height']),(1920,1080))
                 self.assertTrue(item['en'] and item['sk'])
-                for field in ('full','thumb'):
-                    prefix,encoded=item[field].split(',',1)
-                    self.assertIn(prefix,('data:image/webp;base64','data:image/png;base64','data:image/jpeg;base64'))
-                    self.assertTrue(base64.b64decode(encoded,validate=True))
-                self.assertGreater(item['width'],0)
-                self.assertGreater(item['height'],0)
+                for kind in ('full','thumb'):
+                    b=(docs/item[kind]).read_bytes()
+                    self.assertEqual(b[:4],b'RIFF')
+                    self.assertEqual(b[8:12],b'WEBP')
+                    self.assertEqual(hashlib.sha1(('blob %d\0'%len(b)).encode()+b).hexdigest(),item[kind+'_git_blob'])
+                    self.assertIn(item[kind],source)
