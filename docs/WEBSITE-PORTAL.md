@@ -100,3 +100,7 @@ Owner rejected the visible rectangular animation panel on product pages and expl
 ## Eight-position solar system with community destinations — 25 November 2026
 
 Owner requested three smaller orbiting external destinations (OpenATV, OpenPLi, AB-Fórum) alongside five Warder products, with easily replaceable positions for future projects. Homepage template community-planets defines ordered links, symbols, colors and target count eight. Products take priority; spare positions are filled in configured order and automatically released when new products arrive, with no hard product limit. External links open a new tab safely; single-product details and their dialogs are unchanged. Shared CSS and JS retained, versioned and documented. Tests cover eight destinations, correct link attributes, replacement of one community by a sixth product, and detail isolation. No plugin changes.
+
+## Central skull home navigation — 25 November 2026
+
+Owner requested that clicking the stationary skull on any product detail return to the homepage, exactly like the header brand link. Wrapped the existing unmodified image in a native localized home anchor, retained its exact geometry and separate orbit controls. No overlay, image change or layout redesign. All five product pages, keyboard and click navigation tests, and the orbit maintenance guide updated. Website only.

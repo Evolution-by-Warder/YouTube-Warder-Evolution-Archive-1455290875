@@ -308,7 +308,7 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertEqual(page.count('class="planet-track" hidden'),1)
             self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1"',page)
             self.assertIn('portal-orbit.js?v=20261125-orbit5',page)
-            self.assertIn('portal-orbit.css?v=20261125-orbit5',page)
+            self.assertIn('portal-orbit.css?v=20261125-orbit6',page)
             self.assertIn('class="hero detail-hero"',page)
             self.assertNotIn('class="detail-visual',page)
             self.assertNotIn('orbit-showroom',page)
@@ -347,3 +347,14 @@ class WebsitePortalTests(unittest.TestCase):
         self.assertIn('const config=single?null:',js)
         for p in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
             self.assertNotIn('id="community-planets"',(docs/p).read_text())
+
+    def test_detail_skull_native_home_link(self):
+        import re
+        docs=ROOT/'docs'
+        for filename in ('fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
+            page=(docs/filename).read_text()
+            links=re.findall(r'<a class="skull-home" href="index.html"([^>]*)><img class="skull"[^>]*></a>',page)
+            self.assertEqual(len(links),1,filename)
+            for lang in ('sk','en','de','ru'):
+                self.assertIn('data-aria-'+lang+'=',links[0])
+        self.assertNotIn('class="skull-home"',(docs/'index.html').read_text())
