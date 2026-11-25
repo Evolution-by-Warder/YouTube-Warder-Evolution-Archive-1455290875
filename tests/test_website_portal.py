@@ -183,3 +183,13 @@ class WebsitePortalTests(unittest.TestCase):
         css=(docs/"portal.css").read_text()
         self.assertIn(".product-card-link::after",css)
         self.assertIn("a:not(.product-card-link)",css)
+
+    def test_dvb_radio_rds_caption(self):
+        import json
+        docs=ROOT/"docs"
+        item=next(x for x in json.loads((docs/"screenshots/provenance.json").read_text())["products"]["glass"] if x["full"]=="screenshots/glass/11-full.webp")
+        self.assertEqual(item["sk"],"Režim rádia – DVB-S s RDS/RT+")
+        self.assertEqual(item["en"],"Radio mode – DVB-S with RDS/RT+")
+        page=(docs/"fullhdglass.html").read_text()
+        self.assertIn('data-caption-sk="'+item["sk"]+'"',page)
+        self.assertIn('data-caption-en="'+item["en"]+'"',page)

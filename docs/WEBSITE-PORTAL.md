@@ -58,3 +58,7 @@ Owner requested a concrete channel-selection panel without any settings/help bub
 ## Clickable homepage product cards — 25 November 2026
 
 Owner requested that clicking anywhere on a highlighted product card open the same detail page as Discover features. Stretched each existing product-heading native HTML link across its card via a CSS pseudo-element; the artwork, description and free space all navigate to the corresponding product detail page without JavaScript. IPK downloads, Latest release, Source & documentation and Discover features retain their own native links above the stretched surface. Keyboard focus, Ctrl/Cmd-click and native link behavior are preserved; no nested anchors. Added structural and desktop/tablet/mobile browser hit-target and navigation tests. No product assets, releases, detail pages or galleries changed in this PR.
+
+## DVB-S radio mode caption — 25 November 2026
+
+Owner requested distinguishing satellite radio with RDS metadata from ordinary satellite radio. Verified FullHDGlass `warderRadioRds.py` reads native DVB RDS RadioText and structured RT+ title/artist fields; `warderRadioCoverSearch.py` performs separate online artwork lookup. Updated only the bilingual caption and matching provenance of screenshot 11 to `Režim rádia – DVB-S s RDS/RT+` / `Radio mode – DVB-S with RDS/RT+`. No claim that every DVB-S station sends these metadata or broadcasts album covers. All original images and other product content unchanged.
