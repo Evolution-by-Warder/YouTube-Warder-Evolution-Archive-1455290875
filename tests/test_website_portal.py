@@ -71,7 +71,7 @@ class WebsitePortalTests(unittest.TestCase):
         docs=ROOT/'docs'
         data=json.loads((docs/'screenshots/provenance.json').read_text())
         pages={'glass':'fullhdglass.html','picon':'piconhub.html','gsu':'gsu.html','radio':'radio.html','youtube':'youtube-warder.html'}
-        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':5,'picon':3,'gsu':7,'radio':10,'youtube':8})
+        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':12,'picon':3,'gsu':7,'radio':10,'youtube':8})
         for key,items in data['products'].items():
             source=(docs/pages[key]).read_text()
             self.assertIn('id="screenshots"',source)
@@ -118,7 +118,7 @@ class WebsitePortalTests(unittest.TestCase):
         source=(ROOT/"docs/fullhdglass.html").read_text()
         grid=source.split('id="screenshots"',1)[1].split("</section>",1)[0]
         links=re.findall(r'<figure[^>]*><a href="([^"]+)"',grid)
-        self.assertEqual(links,["screenshots/glass/01-full.webp","fullhdglass-infobars.html","screenshots/glass/02-full.webp","fullhdglass-channel-selection.html","screenshots/glass/03-full.webp","screenshots/glass/04-full.webp","screenshots/glass/05-full.webp"])
+        self.assertEqual(links,["screenshots/glass/01-full.webp","fullhdglass-infobars.html","screenshots/glass/02-full.webp","fullhdglass-channel-selection.html","screenshots/glass/03-full.webp","screenshots/glass/04-full.webp","screenshots/glass/05-full.webp"]+["screenshots/glass/%02d-full.webp"%n for n in range(6,13)])
         self.assertIn('src="screenshots/infobars/37-full.webp"',grid)
         self.assertEqual(grid.count('href="fullhdglass-infobars.html"'),1)
         self.assertIn("Pozrite si 78 typov infobarov",grid)
@@ -157,3 +157,9 @@ class WebsitePortalTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha1(("blob %d\0"%len(b)).encode()+b).hexdigest(),item[kind+"_git_blob"])
                 self.assertIn(item[kind],p.href if kind=="full" else p.src)
         self.assertNotIn("V dodanej kolekcii nie je samostatný záber typu 37.",(docs/"fullhdglass-infobars.html").read_text())
+
+    def test_channel_selection_card_uses_clean_pig_crop(self):
+        docs=ROOT/"docs"
+        source=(docs/"fullhdglass.html").read_text()
+        self.assertIn('src="screenshots/channel-selection/card-preview-pig.webp" width="428" height="185"',source)
+        self.assertEqual((docs/"screenshots/channel-selection/card-preview-pig.webp").read_bytes(),(docs/"screenshots/channel-selection/40-full.webp").read_bytes())

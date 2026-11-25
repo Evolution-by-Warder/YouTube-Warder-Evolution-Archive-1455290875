@@ -51,6 +51,76 @@
         "height": 1080,
         "full_git_blob": "dfbae8057b27c3c8e5bb9f05f3bfcce5f56af425",
         "thumb_git_blob": "530459020c31801c614fc4dc64e61699c0baf207"
+      },
+      {
+        "sk": "Multi EPG",
+        "en": "Multi EPG",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/06-full.webp",
+        "full_git_blob": "29073a024d7b72266706c2edb3c5141a5ed917f8",
+        "thumb": "screenshots/glass/06-thumb.webp",
+        "thumb_git_blob": "436823a32d476465f1ef4bed72eec55ed20a6bd6"
+      },
+      {
+        "sk": "Detail programu a hodnotenie TMDB",
+        "en": "Programme details and TMDB rating",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/07-full.webp",
+        "full_git_blob": "8b0b61ab9e8af212ac893272f35fd2bb7bb8cf97",
+        "thumb": "screenshots/glass/07-thumb.webp",
+        "thumb_git_blob": "3c55acae472736cd70842f9d49be50ab4b6a0b24"
+      },
+      {
+        "sk": "Počasie v informačnej lište",
+        "en": "Weather in the infobar",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/08-full.webp",
+        "full_git_blob": "32fd423beeedee9e022bacd05be3be90bdbffff6",
+        "thumb": "screenshots/glass/08-thumb.webp",
+        "thumb_git_blob": "bbe0ccecf3a20a74c78bd8cea537df876119f88e"
+      },
+      {
+        "sk": "Rozšírená predpoveď počasia",
+        "en": "Extended weather forecast",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/09-full.webp",
+        "full_git_blob": "49f9f62fa746a8134677e4d276b661722c0c5f4c",
+        "thumb": "screenshots/glass/09-thumb.webp",
+        "thumb_git_blob": "34fc662467469c17b4a64697a69ed392e8bc848a"
+      },
+      {
+        "sk": "Režim rádia – IPTV",
+        "en": "Radio mode – IPTV",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/10-full.webp",
+        "full_git_blob": "dc6989364c22b90d73d5f386e838d8f956101120",
+        "thumb": "screenshots/glass/10-thumb.webp",
+        "thumb_git_blob": "56546bfae6444f3aaf8668e9442d9f4bbfd9b016"
+      },
+      {
+        "sk": "Režim rádia – DVB-S",
+        "en": "Radio mode – DVB-S",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/11-full.webp",
+        "full_git_blob": "662784f3a0f688b3ac08b587883d7e08a7b9c5bb",
+        "thumb": "screenshots/glass/11-thumb.webp",
+        "thumb_git_blob": "d443c2710f96609c44dac83a8dd667666b290cb5"
+      },
+      {
+        "sk": "Režim rádia – DAB",
+        "en": "Radio mode – DAB",
+        "width": 1920,
+        "height": 1080,
+        "full": "screenshots/glass/12-full.webp",
+        "full_git_blob": "d8060d1fd5edfc556a624bae1e3d06cf54a8e2bb",
+        "thumb": "screenshots/glass/12-thumb.webp",
+        "thumb_git_blob": "2f2fa341804f84c16b61bb923814ab60648397df"
       }
     ],
     "picon": [
