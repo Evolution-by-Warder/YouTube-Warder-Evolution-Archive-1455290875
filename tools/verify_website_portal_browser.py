@@ -32,6 +32,10 @@ try:
             page.evaluate("document.fonts.ready")
             assert page.locator(".product").count() == 5
             assert page.locator("h1").inner_text() == "WARDER\nEVOLUTION"
+            assert page.locator("html").get_attribute("lang") == "sk"
+            assert page.locator(".hero h2").inner_text() == "Enigma2. V novom svetle."
+            assert page.locator("button[data-lang='sk']").get_attribute("aria-pressed") == "true"
+            page.locator("button[data-lang='en']").click()
             assert page.locator("html").get_attribute("lang") == "en"
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name + " overflow"
             assert page.locator("a[href$='.ipk']").count() == 5
@@ -174,10 +178,38 @@ try:
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), name+" channel SK overflow"
             page.locator(".crumb a").click()
             page.wait_for_url("**/fullhdglass.html#screenshots")
+            # Check both new languages on every marketing page and gallery, including stored preference.
+            for lang,heading,dialog_label,close_label in (
+                ("de","Enigma2. Neu gedacht.","Screenshot-Galerie","Schließen"),
+                ("ru","Enigma2. Новый взгляд.","Галерея снимков","Закрыть"),
+            ):
+                page.goto(url,wait_until="domcontentloaded")
+                page.locator("button[data-lang='"+lang+"']").click()
+                assert page.locator(".hero h2").inner_text()==heading
+                for localized_page in ("index.html",)+product_pages+("fullhdglass-infobars.html","fullhdglass-channel-selection.html"):
+                    page.goto(url.replace("index.html",localized_page),wait_until="domcontentloaded")
+                    assert page.locator("html").get_attribute("lang")==lang
+                    assert page.locator("button[data-lang='"+lang+"']").get_attribute("aria-pressed")=="true"
+                    assert page.locator("span."+lang+"[lang='"+lang+"']:visible").count()>0
+                    for other in ("sk","en","de","ru"):
+                        if other!=lang:
+                            assert page.locator("span."+other+"[lang='"+other+"']:visible").count()==0
+                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), localized_page+" "+name+" "+lang+" overflow"
+                    captions=page.locator(".screenshot-grid a[data-caption-"+lang+"]")
+                    if captions.count():
+                        expected_caption=captions.first.get_attribute("data-caption-"+lang)
+                        captions.first.click()
+                        dialog=page.locator("dialog.screenshot-dialog")
+                        assert dialog.get_attribute("aria-label")==dialog_label
+                        assert expected_caption in dialog.locator(".screenshot-caption").inner_text()
+                        dialog.get_by_role("button",name=close_label).click()
+                        dialog.wait_for(state="detached")
+                page.goto(url,wait_until="domcontentloaded")
+                page.screenshot(path=str(OUT/(name+"-"+lang+".png")),full_page=True,animations="disabled")
             assert not errors, errors
             report.append({"viewport": name, "width": width, "height": height,
                            "products": 5, "loaded_images": page.locator("img").count(),
-                           "languages": ["en","sk"], "overflow": False, "page_errors": errors, "product_pages": checked})
+                           "languages": ["sk","en","de","ru"], "overflow": False, "page_errors": errors, "product_pages": checked})
             context.close()
         browser.close()
 finally:
