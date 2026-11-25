@@ -55,3 +55,13 @@ class WebsitePortalTests(unittest.TestCase):
             for href in p.href+p.src:
                 if href.startswith('#'):self.assertIn(href[1:],p.ids,filename)
                 elif not href.startswith('https://'):self.assertTrue((docs/href.split('#')[0]).is_file(),href)
+
+    def test_marketing_pages_no_technical_gallery_archives(self):
+        docs=ROOT/'docs'
+        for filename in ('index.html','fullhdglass.html','piconhub.html','radio.html','youtube-warder.html','gsu.html'):
+            source=(docs/filename).read_text()
+            p=Parser();p.feed(source)
+            self.assertFalse(any(h.lower().split('?')[0].endswith(('.zip','.rar','.7z')) for h in p.href),filename)
+            self.assertNotIn('portal-art/gallery/',source)
+            self.assertNotIn('weather-wind-help.png',source)
+            self.assertNotIn('weather-uv-help.png',source)
