@@ -307,9 +307,17 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertIn('data-planet-name="'+name+'" data-planet-icon="'+icon+'" data-planet-color="'+color+'"',page)
             self.assertEqual(page.count('class="planet-track" hidden'),1)
             self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1"',page)
-            self.assertIn('portal-orbit.js?v=20261125-orbit2',page)
-            self.assertIn('portal-orbit.css?v=20261125-orbit2',page)
+            self.assertIn('portal-orbit.js?v=20261125-orbit3',page)
+            self.assertIn('portal-orbit.css?v=20261125-orbit3',page)
             self.assertIn('class="detail-visual orbit-showroom"',page)
             self.assertIn('data-planet-icon="'+icon+'"',home)
         self.assertNotIn('data-orbit-mode="single"',home)
-        self.assertIn('portal-orbit.js?v=20261125-orbit2',home)
+        self.assertIn('portal-orbit.js?v=20261125-orbit3',home)
+
+    def test_detail_planet_info_uses_existing_localized_content(self):
+        js=(ROOT/'docs/portal-orbit.js').read_text()
+        css=(ROOT/'docs/portal-orbit.css').read_text()
+        self.assertIn('document.createElement(single?"button":"a")',js)
+        for token in ('.detail-intro','.detail-copy .ver','.detail-copy .status','.feature-card h3','showModal()','orbit-info-open'):
+            self.assertIn(token,js)
+        self.assertIn('.orbit-info-open',css)

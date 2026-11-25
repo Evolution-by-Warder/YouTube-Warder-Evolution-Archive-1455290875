@@ -107,7 +107,22 @@ try:
                 detail_planet.wait_for(state="visible")
                 assert detail_planet.count()==1
                 assert detail_planet.inner_text()=={"fullhdglass.html":"FullHDGlass","piconhub.html":"PiconHub","radio.html":"Radio","youtube-warder.html":"YouTube","gsu.html":"GSU"}[product_page]
-                assert detail_planet.get_attribute("role")=="img"
+                assert detail_planet.evaluate("e=>e.tagName")== "BUTTON"
+                assert detail_planet.get_attribute("aria-haspopup")=="dialog"
+                detail_planet.click()
+                info=page.locator("dialog.planet-info")
+                assert info.is_visible()
+                assert info.locator("h2").inner_text()==detail_planet.inner_text()
+                assert info.locator(".planet-info-description").inner_text()==page.locator(".detail-intro .en").inner_text()
+                assert page.locator(".detail-copy .ver").inner_text() in info.locator(".planet-info-version").inner_text()
+                assert info.locator("li").count()==3
+                assert detail_planet.get_attribute("aria-expanded")=="true"
+                assert page.locator(".hero-visual").evaluate("e=>e.classList.contains('orbit-info-open')")
+                page.keyboard.press("Escape")
+                info.wait_for(state="detached")
+                assert detail_planet.get_attribute("aria-expanded")=="false"
+                page.mouse.move(0,0)
+                detail_planet.evaluate("e=>e.blur()")
                 assert page.locator(".orbit-showroom .skull").evaluate("e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect();return getComputedStyle(e).maskImage==='none' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}")
                 assert detail_planet.evaluate("e=>{const r=e.getBoundingClientRect(),p=e.closest('.orbit-showroom').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom}")
                 assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationName")=="none"
@@ -152,6 +167,10 @@ try:
                 page.locator("button[data-lang='sk']").click()
                 assert page.locator("html").get_attribute("lang") == "sk"
                 assert page.locator(".feature-card .sk:visible").count() == 16
+                detail_planet.click()
+                assert info.locator(".planet-info-description").inner_text()==page.locator(".detail-intro .sk").inner_text()
+                info.get_by_role("button",name="Zavrieť").click()
+                info.wait_for(state="detached")
                 gallery.first.click()
                 assert page.locator("dialog.screenshot-dialog").get_attribute("aria-label")=="Galéria snímok"
                 page.locator("dialog.screenshot-dialog button[aria-label=\"Zavrieť\"]").click()

@@ -36,6 +36,51 @@
     }
     return svg;
   }
+  const infoLabels={sk:{close:"Zavrieť",version:"Verzia"},en:{close:"Close",version:"Version"},de:{close:"Schließen",version:"Version"},ru:{close:"Закрыть",version:"Версия"}};
+  let info=null;
+  function openInfo(planet,p){
+    if(info||typeof HTMLDialogElement==="undefined")return;
+    const lang=document.documentElement.lang;
+    const words=infoLabels[lang]||infoLabels.sk;
+    const translated=el=>el?.querySelector('[lang="'+lang+'"]')?.textContent.trim()||el?.textContent.trim()||"";
+    const d=document.createElement("dialog");d.className="planet-info";
+    d.setAttribute("aria-labelledby","planet-info-title");
+    d.style.setProperty("--planet-accent",p.accent);
+    const heading=document.createElement("h2");heading.id="planet-info-title";heading.textContent=p.name;
+    const close=document.createElement("button");close.type="button";close.className="planet-info-close";close.textContent="×";close.setAttribute("aria-label",words.close);
+    const version=document.createElement("p");version.className="planet-info-version";
+    const current=document.querySelector(".detail-copy .ver")?.textContent.trim();
+    const status=translated(document.querySelector(".detail-copy .status"));
+    version.textContent=current?[words.version+" "+current,status].filter(Boolean).join(" · "):"";
+    const description=document.createElement("p");description.className="planet-info-description";description.textContent=translated(document.querySelector(".detail-intro"));
+    const features=document.createElement("ul");
+    for(const node of [...document.querySelectorAll(".feature-card h3")].slice(0,3)){
+      const item=document.createElement("li");item.textContent=translated(node);if(item.textContent)features.append(item);
+    }
+    d.append(close,heading);if(version.textContent)d.append(version);if(description.textContent)d.append(description);if(features.children.length)d.append(features);
+    info=d;hero.classList.add("orbit-info-open");planet.setAttribute("aria-expanded","true");document.body.append(d);
+    function place(){
+      const r=planet.getBoundingClientRect(),b=d.getBoundingClientRect(),pad=12;
+      let x=r.right+12;
+      if(x+b.width>innerWidth-pad)x=r.left-b.width-12;
+      if(x<pad)x=(innerWidth-b.width)/2;
+      let y=r.top+(r.height-b.height)/2;
+      x=Math.max(pad,Math.min(x,innerWidth-b.width-pad));
+      y=Math.max(pad,Math.min(y,innerHeight-b.height-pad));
+      d.style.left=x+"px";d.style.top=y+"px";
+    }
+    close.addEventListener("click",()=>d.close());
+    d.addEventListener("click",event=>{
+      if(event.target!==d)return;
+      const r=d.getBoundingClientRect();
+      if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)d.close();
+    });
+    d.addEventListener("close",()=>{
+      window.removeEventListener("resize",place);
+      d.remove();info=null;planet.setAttribute("aria-expanded","false");hero.classList.remove("orbit-info-open");
+    },{once:true});
+    d.showModal();place();window.addEventListener("resize",place);close.focus({preventScroll:true});
+  }
   function rebuild(){
     const cards=single?[{name:hero.dataset.planetName,icon:hero.dataset.planetIcon||"star",accent:hero.dataset.planetColor||"#73dcff"}]:[...catalog.querySelectorAll(":scope > .product")].map(card=>{
       const link=card.querySelector(".product-card-link");if(!link)return null;
@@ -50,8 +95,8 @@
       slot.style.setProperty("--x",(50+50*Math.cos(angle)).toFixed(6)+"%");
       slot.style.setProperty("--y",(50+50*Math.sin(angle)).toFixed(6)+"%");
       const counter=document.createElement("div");counter.className="planet-counter";
-      const a=document.createElement(single?"span":"a");a.className="planet-link";a.title=p.name;
-      if(single){a.setAttribute("role","img")}else{a.href=p.href}
+      const a=document.createElement(single?"button":"a");a.className="planet-link";a.title=p.name;
+      if(single){a.type="button";a.setAttribute("aria-haspopup","dialog");a.setAttribute("aria-expanded","false");a.addEventListener("click",()=>openInfo(a,p))}else{a.href=p.href}
       a.setAttribute("aria-label",p.name);a.style.setProperty("--planet-accent",p.accent);
       const symbol=document.createElement("span");symbol.className="planet-symbol";symbol.setAttribute("aria-hidden","true");symbol.append(makeIcon(p.icon));
       const label=document.createElement("span");label.className="planet-name";label.textContent=p.name;
