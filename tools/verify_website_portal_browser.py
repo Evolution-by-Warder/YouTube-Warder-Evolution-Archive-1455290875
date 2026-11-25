@@ -57,7 +57,7 @@ try:
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
                 gallery=page.locator("#screenshots .screenshot-grid a[data-caption-en][data-caption-sk]")
-                expected={"fullhdglass.html":5,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
+                expected={"fullhdglass.html":12,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
                 assert gallery.count()==expected[product_page]
                 gallery.first.click()
                 dialog=page.locator("dialog.screenshot-dialog")
@@ -95,7 +95,7 @@ try:
                 checked.append(product_page)
             page.goto(url.replace('index.html','fullhdglass.html'),wait_until="domcontentloaded")
             cards=page.locator('#screenshots .screenshot-grid figure > a')
-            assert cards.count()==7
+            assert cards.count()==14
             assert cards.nth(0).get_attribute('href')=='screenshots/glass/01-full.webp'
             assert cards.nth(1).get_attribute('href')=='fullhdglass-infobars.html'
             assert cards.nth(2).get_attribute('href')=='screenshots/glass/02-full.webp'
