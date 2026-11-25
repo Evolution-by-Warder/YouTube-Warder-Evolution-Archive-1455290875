@@ -112,3 +112,13 @@ class WebsitePortalTests(unittest.TestCase):
                 self.assertEqual(b[8:12],b'WEBP')
                 self.assertEqual(hashlib.sha1(('blob %d\0'%len(b)).encode()+b).hexdigest(),item[kind+'_git_blob'])
                 self.assertIn(item[kind],p.href if kind=='full' else p.src)
+
+    def test_infobar_collection_card_order(self):
+        import re
+        source=(ROOT/"docs/fullhdglass.html").read_text()
+        grid=source.split('id="screenshots"',1)[1].split("</section>",1)[0]
+        links=re.findall(r'<figure[^>]*><a href="([^"]+)"',grid)
+        self.assertEqual(links,["screenshots/glass/01-full.webp","fullhdglass-infobars.html","screenshots/glass/02-full.webp","screenshots/glass/03-full.webp","screenshots/glass/04-full.webp","screenshots/glass/05-full.webp"])
+        self.assertIn('src="screenshots/infobars/37-full.webp"',grid)
+        self.assertEqual(grid.count('href="fullhdglass-infobars.html"'),1)
+        self.assertIn("Pozrite si 78 typov infobarov",grid)

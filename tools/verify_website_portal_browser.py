@@ -56,7 +56,7 @@ try:
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
-                gallery=page.locator("#screenshots .screenshot-grid a")
+                gallery=page.locator("#screenshots .screenshot-grid a[data-caption-en][data-caption-sk]")
                 expected={"fullhdglass.html":5,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
                 assert gallery.count()==expected[product_page]
                 gallery.first.click()
@@ -94,7 +94,12 @@ try:
                 page.locator("button[data-lang='en']").click()
                 checked.append(product_page)
             page.goto(url.replace('index.html','fullhdglass.html'),wait_until="domcontentloaded")
-            page.locator('#screenshots a[href="fullhdglass-infobars.html"]').click()
+            cards=page.locator('#screenshots .screenshot-grid figure > a')
+            assert cards.count()==6
+            assert cards.nth(0).get_attribute('href')=='screenshots/glass/01-full.webp'
+            assert cards.nth(1).get_attribute('href')=='fullhdglass-infobars.html'
+            assert cards.nth(2).get_attribute('href')=='screenshots/glass/02-full.webp'
+            cards.nth(1).click()
             page.wait_for_url("**/fullhdglass-infobars.html")
             variants=page.locator("#infobars .screenshot-grid a")
             assert variants.count()==78
