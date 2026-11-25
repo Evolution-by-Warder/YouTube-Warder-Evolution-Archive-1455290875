@@ -103,8 +103,8 @@
         "thumb_git_blob": "56546bfae6444f3aaf8668e9442d9f4bbfd9b016"
       },
       {
-        "sk": "Režim rádia – DVB-S",
-        "en": "Radio mode – DVB-S",
+        "sk": "Režim rádia – DVB-S s RDS/RT+",
+        "en": "Radio mode – DVB-S with RDS/RT+",
         "width": 1920,
         "height": 1080,
         "full": "screenshots/glass/11-full.webp",
