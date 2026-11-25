@@ -65,3 +65,23 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertNotIn('portal-art/gallery/',source)
             self.assertNotIn('weather-wind-help.png',source)
             self.assertNotIn('weather-uv-help.png',source)
+
+    def test_real_receiver_galleries(self):
+        import json,hashlib
+        docs=ROOT/'docs'
+        data=json.loads((docs/'screenshots/provenance.json').read_text())
+        pages={'glass':'fullhdglass.html','picon':'piconhub.html','gsu':'gsu.html','radio':'radio.html','youtube':'youtube-warder.html'}
+        self.assertEqual({k:len(v) for k,v in data['products'].items()},{'glass':5,'picon':3,'gsu':7,'radio':8,'youtube':8})
+        for key,items in data['products'].items():
+            source=(docs/pages[key]).read_text()
+            self.assertIn('id="screenshots"',source)
+            self.assertEqual(source.count('class="shot-zoom"'),len(items))
+            for item in items:
+                self.assertEqual((item['width'],item['height']),(1920,1080))
+                self.assertTrue(item['en'] and item['sk'])
+                for kind in ('full','thumb'):
+                    b=(docs/item[kind]).read_bytes()
+                    self.assertEqual(b[:4],b'RIFF')
+                    self.assertEqual(b[8:12],b'WEBP')
+                    self.assertEqual(hashlib.sha1(('blob %d\0'%len(b)).encode()+b).hexdigest(),item[kind+'_git_blob'])
+                    self.assertIn(item[kind],source)

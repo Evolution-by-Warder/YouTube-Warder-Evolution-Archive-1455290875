@@ -31,3 +31,6 @@
 .screenshot-controls button:disabled{opacity:.35;cursor:default}
 .screenshot-caption{font-size:14px;text-align:center}
 @media(max-width:650px){.screenshot-grid{grid-template-columns:1fr}.screenshot-controls button{padding:8px 12px}.screenshot-caption{font-size:12px}}
+
+/* Real receiver galleries: separate lazy-loaded WebP previews and full-size files. */
+.screenshot-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.screenshot-grid figure{transition:border-color .2s,transform .2s}.screenshot-grid figure:hover{border-color:var(--detail-accent);transform:translateY(-3px)}.screenshot-grid a{position:relative}.shot-zoom{position:absolute;bottom:10px;right:10px;display:grid;place-items:center;width:34px;height:34px;border:1px solid #48677e;border-radius:7px;background:#071320df;color:#e1f8ff;font-size:21px}.screenshot-section .section-heading p{max-width:340px}.product-detail .nav-links{gap:16px;flex-wrap:wrap}.variant-grid{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:900px){.screenshot-grid,.variant-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.screenshot-grid{grid-template-columns:1fr}.variant-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-detail .nav-links{gap:10px 14px}}
