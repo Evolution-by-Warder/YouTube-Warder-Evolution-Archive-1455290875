@@ -206,6 +206,21 @@ try:
                         dialog.wait_for(state="detached")
                 page.goto(url,wait_until="domcontentloaded")
                 page.screenshot(path=str(OUT/(name+"-"+lang+".png")),full_page=True,animations="disabled")
+            # Simulate the old two-language stylesheet being returned by a stale cache.
+            # The real script plus document-local guard must still keep exactly one language visible.
+            stale_css='html[data-language=en] .sk,html[data-language=sk] .en{display:none!important}'
+            def stale_stylesheet(route):
+                route.fulfill(status=200,content_type="text/css",body=stale_css)
+            page.route("**/portal.css*",stale_stylesheet)
+            for localized_page in ("index.html",)+product_pages+("fullhdglass-infobars.html","fullhdglass-channel-selection.html"):
+                page.goto(url.replace("index.html",localized_page),wait_until="domcontentloaded")
+                for lang in ("sk","en","de","ru"):
+                    page.locator("button[data-lang='"+lang+"']").click()
+                    assert page.locator("span."+lang+"[lang='"+lang+"']:visible").count()>0
+                    for other in ("sk","en","de","ru"):
+                        if other!=lang:
+                            assert page.locator("span."+other+"[lang='"+other+"']:visible").count()==0, localized_page+" stale CSS "+lang
+            page.unroute("**/portal.css*",stale_stylesheet)
             assert not errors, errors
             report.append({"viewport": name, "width": width, "height": height,
                            "products": 5, "loaded_images": page.locator("img").count(),

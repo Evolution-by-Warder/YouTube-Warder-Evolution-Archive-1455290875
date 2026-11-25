@@ -5,6 +5,7 @@ const buttons=[...document.querySelectorAll("[data-lang]")];
 function language(value){
   const lang=supported.includes(value)?value:"sk";
   root.lang=lang;root.dataset.language=lang;
+  document.querySelectorAll("span[lang]:is(.sk,.en,.de,.ru)").forEach(el=>{el.hidden=el.getAttribute("lang")!==lang;});
   buttons.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===lang)));
   for(const [key,attr] of [["aria","aria-label"],["alt","alt"],["content","content"]]){
     document.querySelectorAll("[data-"+key+"-"+lang+"]").forEach(el=>el.setAttribute(attr,el.getAttribute("data-"+key+"-"+lang)));
