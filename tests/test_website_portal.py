@@ -143,7 +143,13 @@ class WebsitePortalTests(unittest.TestCase):
         self.assertFalse(any(h.lower().endswith(".zip") for h in p.href))
         for item in items:
             self.assertTrue(item["sk"] and item["en"])
-            self.assertEqual((item["width"],item["height"]),(1920,1080))
+            self.assertEqual(item["original_size"],[1920,1080])
+            left,top,right,bottom=item["crop"]
+            self.assertTrue(0<=left<right<=1920 and 0<=top<bottom<=1080)
+            self.assertEqual((item["width"],item["height"]),(right-left,bottom-top))
+            self.assertTrue(400<=item["width"]<=440 and 175<=item["height"]<=200)
+            self.assertEqual(item["full_git_blob"],item["thumb_git_blob"])
+            self.assertIn('src="%s" width="%s" height="%s"'%(item["thumb"],item["width"],item["height"]),page)
             for kind in ("full","thumb"):
                 b=(docs/item[kind]).read_bytes()
                 self.assertEqual(b[:4],b"RIFF")

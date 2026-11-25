@@ -42,3 +42,7 @@ Owner supplied `vyber kanalov.ZIP` and requested an image navigation card betwee
 ### Channel selection completeness correction
 
 Owner provided eleven follow-up captures. Visual comparison of the selected `Typ` menu labels identified the two missing variants: `s PIG 2` (follow-up 43.jpg) and `s PIG 5` (follow-up 46.jpg). All 45 previously verified variants retained, original duplicate 41.jpg still excluded. The 47 unique variants are now in correct consecutive gallery order (PIG 1–6, then picon 400x240 and ZZPicon), with 94 WebP assets and revised bilingual count, provenance, and regression checks. Remaining nine follow-up captures show variants already covered and are not duplicated. Web-only, no plugin changes.
+
+## Channel-selection native preview crops — 25 November 2026
+
+Owner requested replacing all 47 configuration-screen screenshots in the channel-selection collection with the actual black preview rectangle. Prepared and visually reviewed 47 native-resolution, lossless WebP crops from the original captures, with individual coordinates and source mapping recorded in provenance. Both existing full and thumbnail paths now point to the matching cropped bytes, including the product-page navigation image. No generated or upscaled image files. Lightbox enlarges only the panel, retaining its aspect ratio. All names, sequence, 47-count and the 78-infobar gallery are unchanged. Original full captures remain in Git history. Updated EN/SK copy, exact image dimensions and regression tests. Web only.
