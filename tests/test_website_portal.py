@@ -367,5 +367,5 @@ class WebsitePortalTests(unittest.TestCase):
             translations=re.findall(r'<span class="'+lang+r'" lang="'+lang+r'"[^>]*>(.*?)</span>',about)
             self.assertIn(heading,translations)
             self.assertTrue(any(term in t for t in translations),lang)
-            self.assertTrue(any(all(name in t for name in ("FullHDGlass","GSU","Shamann","PiconHub","Chocholouse","s3n0","YouTube Warder Evolution","Taapat")) for t in translations),lang)
+            self.assertTrue(any(all(name in t for name in ("FullHDGlass","GSU","Shamann","PiconHub","Chocholouse","s3n0","Radio Warder Evolution","oerlgrey","HDF-Radio","YouTube Warder Evolution","Taapat")) for t in translations),lang)
         self.assertEqual(about.count("<p>"),2)
