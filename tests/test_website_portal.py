@@ -32,3 +32,26 @@ class WebsitePortalTests(unittest.TestCase):
     def test_no_external_scripts(self):
         p=Parser(); p.feed((ROOT/'docs/index.html').read_text()); self.assertIn('portal.js',p.src)
         self.assertTrue(all(not x.endswith('.js') or x=='portal.js' for x in p.src))
+
+    def test_individual_product_pages(self):
+        docs=ROOT/'docs'
+        names={'fullhdglass.html':'FullHDGlass','piconhub.html':'PiconHub','radio.html':'Radio','youtube-warder.html':'YouTube','gsu.html':'GSU'}
+        home=Parser(); home.feed((docs/'index.html').read_text())
+        for filename,name in names.items():
+            self.assertIn(filename,home.href)
+            source=(docs/filename).read_text()
+            p=Parser();p.feed(source)
+            self.assertEqual(len(p.ids),len(set(p.ids)))
+            self.assertTrue({'main','features','download'}<=set(p.ids))
+            self.assertTrue({'en','sk'}<=set(p.lang))
+            self.assertIn('portal.js',p.src)
+            self.assertEqual(source.count('class="feature-card"'),8,filename)
+            self.assertEqual(source.count('class="family-card"'),4,filename)
+            self.assertIn('index.html#products',p.href)
+            self.assertTrue(any(x.endswith('_all.ipk') for x in p.href))
+            self.assertTrue(any(x.endswith('/releases/latest') for x in p.href))
+            self.assertNotIn('privacy.html',p.href)
+            self.assertNotIn('terms.html',p.href)
+            for href in p.href+p.src:
+                if href.startswith('#'):self.assertIn(href[1:],p.ids,filename)
+                elif not href.startswith('https://'):self.assertTrue((docs/href.split('#')[0]).is_file(),href)

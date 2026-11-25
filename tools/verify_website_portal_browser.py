@@ -48,10 +48,35 @@ try:
             assert page.locator("html").get_attribute("lang") == "sk"
             page.locator("button[data-lang='en']").click()
             assert page.locator("html").get_attribute("lang") == "en"
+            product_pages = ("fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html")
+            checked=[]
+            for product_page in product_pages:
+                page.goto(url,wait_until="domcontentloaded")
+                assert page.locator("html").get_attribute("lang") == "en"
+                page.locator(".product .btn.primary[href='"+product_page+"']").click()
+                page.wait_for_url("**/"+product_page)
+                page.wait_for_function("Array.from(document.images).every(i=>i.complete && i.naturalWidth>0)",timeout=45000)
+                assert page.locator(".feature-card").count() == 8
+                assert page.locator(".family-card").count() == 4
+                assert page.locator("a[href$='.ipk']").count() == 2
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), product_page+" "+name+" EN overflow"
+                if name == "desktop":
+                    page.screenshot(path=str(OUT / (product_page.removesuffix(".html")+"-desktop.png")),full_page=True,animations="disabled")
+                page.locator("button[data-lang='sk']").click()
+                assert page.locator("html").get_attribute("lang") == "sk"
+                assert page.locator(".feature-card .sk:visible").count() == 16
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), product_page+" "+name+" SK overflow"
+                if name == "mobile":
+                    page.screenshot(path=str(OUT / (product_page.removesuffix(".html")+"-mobile-sk.png")),full_page=True,animations="disabled")
+                page.locator(".crumb a").click()
+                page.wait_for_url("**/index.html#products")
+                assert page.locator("html").get_attribute("lang") == "sk"
+                page.locator("button[data-lang='en']").click()
+                checked.append(product_page)
             assert not errors, errors
             report.append({"viewport": name, "width": width, "height": height,
                            "products": 5, "loaded_images": page.locator("img").count(),
-                           "languages": ["en","sk"], "overflow": False, "page_errors": errors})
+                           "languages": ["en","sk"], "overflow": False, "page_errors": errors, "product_pages": checked})
             context.close()
         browser.close()
 finally:
