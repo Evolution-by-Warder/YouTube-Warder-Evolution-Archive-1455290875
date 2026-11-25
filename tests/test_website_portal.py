@@ -231,7 +231,7 @@ class WebsitePortalTests(unittest.TestCase):
         docs=ROOT/"docs"
         for filename in ("index.html","fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html","fullhdglass-infobars.html","fullhdglass-channel-selection.html"):
             page=(docs/filename).read_text()
-            self.assertIn('href="portal.css?v=20261125-skull1"',page)
+            self.assertIn('href="portal.css?v=20261125-orbit4"',page)
             self.assertIn('src="portal.js?v=20261125-langfix2"',page)
             self.assertIn('id="warder-language-guard"',page)
             for lang in ("en","de","ru"):
@@ -307,12 +307,15 @@ class WebsitePortalTests(unittest.TestCase):
             self.assertIn('data-planet-name="'+name+'" data-planet-icon="'+icon+'" data-planet-color="'+color+'"',page)
             self.assertEqual(page.count('class="planet-track" hidden'),1)
             self.assertIn('class="skull" src="portal-art/skull.png?v=20261125-skull1"',page)
-            self.assertIn('portal-orbit.js?v=20261125-orbit3',page)
-            self.assertIn('portal-orbit.css?v=20261125-orbit3',page)
-            self.assertIn('class="detail-visual orbit-showroom"',page)
+            self.assertIn('portal-orbit.js?v=20261125-orbit4',page)
+            self.assertIn('portal-orbit.css?v=20261125-orbit4',page)
+            self.assertIn('class="hero detail-hero"',page)
+            self.assertNotIn('class="detail-visual',page)
+            self.assertNotIn('orbit-showroom',page)
+            self.assertIn('class="coord c3">WARDER / ENIGMA2',page)
             self.assertIn('data-planet-icon="'+icon+'"',home)
         self.assertNotIn('data-orbit-mode="single"',home)
-        self.assertIn('portal-orbit.js?v=20261125-orbit3',home)
+        self.assertIn('portal-orbit.js?v=20261125-orbit4',home)
 
     def test_detail_planet_info_uses_existing_localized_content(self):
         js=(ROOT/'docs/portal-orbit.js').read_text()
@@ -321,3 +324,13 @@ class WebsitePortalTests(unittest.TestCase):
         for token in ('.detail-intro','.detail-copy .ver','.detail-copy .status','.feature-card h3','showModal()','orbit-info-open'):
             self.assertIn(token,js)
         self.assertIn('.orbit-info-open',css)
+
+    def test_unframed_shared_hero_background(self):
+        docs=ROOT/'docs'
+        for filename in ('portal.css','portal-orbit.css'):
+            css=(docs/filename).read_text()
+            for retired in ('.detail-visual','.orbit-showroom','.detail-ring','.detail-index','.detail-caption'):
+                self.assertNotIn(retired,css)
+        css=(docs/'portal.css').read_text()
+        self.assertIn('.detail-hero{border-bottom:1px solid #223951}',css)
+        self.assertNotIn('.detail-hero:before',css)

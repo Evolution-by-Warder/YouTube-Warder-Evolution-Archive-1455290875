@@ -92,3 +92,7 @@ Owner requested the homepage-style animated orbit on each individual product pag
 ### Planet interactions — 25 November 2026
 
 Owner clarified: homepage planets navigate directly to the corresponding product; the single planet on a detail opens a compact product information bubble instead. Bubble reads localized intro, existing version and status and first three feature titles from the detail page, with no duplicated release data. Native dialog, keyboard and outside dismissal, pause while open. Shared sources and maintenance guide updated. Website only.
+
+## Seamless single-product orbit scenes — 25 November 2026
+
+Owner rejected the visible rectangular animation panel on product pages and explicitly requested a source-level redesign, not a visual patch. All five details now use the same full-width `.hero` background as the homepage, with the orbit `.hero-visual` directly in the product hero grid. Removed the old panel markup and its obsolete CSS (including product-specific image cropping and panel badges); plain coordinate labels match the homepage. No replacement artwork, masking, cover layers or hidden panels. Existing one-planet motion, information dialog, homepage navigation, product copy and release data remain unchanged. Updated source guide and structural/browser regression checks for transparent borderless scenes. Website only.

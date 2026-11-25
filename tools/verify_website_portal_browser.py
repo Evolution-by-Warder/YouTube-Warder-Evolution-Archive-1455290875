@@ -32,6 +32,8 @@ try:
             page.evaluate("document.fonts.ready")
             assert page.locator(".skull").evaluate("""e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect(),s=getComputedStyle(e);return e.naturalWidth===425 && e.naturalHeight===445 && s.objectFit===\'contain\' && s.maskImage===\'none\' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}""")
             assert page.locator(".product").count() == 5
+            home_background=page.locator(".hero").evaluate("e=>getComputedStyle(e).backgroundImage")
+            home_stars=page.locator(".hero").evaluate("e=>getComputedStyle(e, '::before').backgroundImage")
             planets=page.locator(".planet-link")
             assert planets.count()==5
             assert planets.evaluate_all("els=>els.map(e=>e.getAttribute('href'))")==["fullhdglass.html","piconhub.html","radio.html","youtube-warder.html","gsu.html"]
@@ -103,7 +105,13 @@ try:
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
-                detail_planet=page.locator(".orbit-showroom .planet-link")
+                scene=page.locator(".detail-hero .hero-visual")
+                assert scene.count()==1
+                assert scene.evaluate("e=>{const s=getComputedStyle(e);return e.parentElement.classList.contains('detail-hero-grid')&&s.backgroundImage==='none'&&s.backgroundColor==='rgba(0, 0, 0, 0)'&&s.borderTopWidth==='0px'&&s.borderRadius==='0px'&&s.boxShadow==='none'&&s.overflow==='visible'}")
+                assert page.locator(".detail-hero").evaluate("e=>getComputedStyle(e).backgroundImage")==home_background
+                assert page.locator(".detail-hero").evaluate("e=>getComputedStyle(e, '::before').backgroundImage")==home_stars
+                assert page.locator(".detail-visual,.orbit-showroom").count()==0
+                detail_planet=page.locator(".detail-hero .planet-link")
                 detail_planet.wait_for(state="visible")
                 assert detail_planet.count()==1
                 assert detail_planet.inner_text()=={"fullhdglass.html":"FullHDGlass","piconhub.html":"PiconHub","radio.html":"Radio","youtube-warder.html":"YouTube","gsu.html":"GSU"}[product_page]
@@ -123,8 +131,8 @@ try:
                 assert detail_planet.get_attribute("aria-expanded")=="false"
                 page.mouse.move(0,0)
                 detail_planet.evaluate("e=>e.blur()")
-                assert page.locator(".orbit-showroom .skull").evaluate("e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect();return getComputedStyle(e).maskImage==='none' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}")
-                assert detail_planet.evaluate("e=>{const r=e.getBoundingClientRect(),p=e.closest('.orbit-showroom').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom}")
+                assert page.locator(".detail-hero .skull").evaluate("e=>{const r=e.getBoundingClientRect(),p=e.parentElement.getBoundingClientRect();return getComputedStyle(e).maskImage==='none' && r.left>=p.left && r.right<=p.right && r.top>=p.top && r.bottom<=p.bottom}")
+                assert detail_planet.evaluate("e=>{const r=e.getBoundingClientRect(),p=e.closest('.hero-visual').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom}")
                 assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationName")=="none"
                 if name=="desktop":
                     page.emulate_media(reduced_motion="no-preference")
@@ -138,7 +146,7 @@ try:
                     assert page.locator(".planet-track").evaluate("e=>getComputedStyle(e).animationPlayState")=="paused"
                     page.locator(".orbit-toggle").click()
                     page.emulate_media(reduced_motion="reduce")
-                    page.locator(".orbit-showroom").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-orbit.png")),animations="disabled")
+                    page.locator(".detail-hero .hero-visual").screenshot(path=str(OUT/(product_page.removesuffix(".html")+"-orbit.png")),animations="disabled")
                 gallery=page.locator("#screenshots .screenshot-grid a[data-caption-en][data-caption-sk]")
                 expected={"fullhdglass.html":12,"piconhub.html":3,"gsu.html":7,"radio.html":10,"youtube-warder.html":8}
                 assert gallery.count()==expected[product_page]
