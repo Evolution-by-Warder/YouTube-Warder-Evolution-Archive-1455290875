@@ -111,6 +111,21 @@ try:
                 page.locator(".product .btn.primary[href='"+product_page+"']").click()
                 page.wait_for_url("**/"+product_page)
                 page.evaluate("document.querySelectorAll('img').forEach(i=>i.loading='eager')")
+                skull_home=page.locator("a.skull-home")
+                assert skull_home.count()==1
+                assert skull_home.get_attribute("href")==page.locator("header .brand").get_attribute("href")=="index.html"
+                assert skull_home.get_attribute("aria-label")=="Warder Evolution – home"
+                skull_home.scroll_into_view_if_needed()
+                assert skull_home.evaluate("a=>{const r=a.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('a')===a}")
+                skull_home.click()
+                page.wait_for_url("**/index.html")
+                assert page.locator(".planet-link").count()==8
+                page.goto(url.replace("index.html",product_page),wait_until="domcontentloaded")
+                if name=="desktop":
+                    skull_home.focus()
+                    page.keyboard.press("Enter")
+                    page.wait_for_url("**/index.html")
+                    page.goto(url.replace("index.html",product_page),wait_until="domcontentloaded")
                 scene=page.locator(".detail-hero .hero-visual")
                 assert scene.count()==1
                 assert scene.evaluate("e=>{const s=getComputedStyle(e);return e.parentElement.classList.contains('detail-hero-grid')&&s.backgroundImage==='none'&&s.backgroundColor==='rgba(0, 0, 0, 0)'&&s.borderTopWidth==='0px'&&s.borderRadius==='0px'&&s.boxShadow==='none'&&s.overflow==='visible'}")
