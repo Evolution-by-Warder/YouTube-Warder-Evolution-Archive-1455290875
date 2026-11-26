@@ -23,3 +23,7 @@ FullHDGlass v1.0.94: PR #206, HEAD `697a98d27b8a490676f68e04c4871b0ec5a5078e`, 2
 ## 2026-11-26 – 21-language localization candidate (incomplete)
 
 Base `e6f45880f89ba4cdcdfd0e323f502b2aca8f5eb5`. Union of existing four runtime dictionaries: 357 source keys (English map 161, Slovak 343, Czech 342, German 343). Russian full 357-key catalogue staged, placeholder sequences checked against English. Remaining 16 languages and runtime integration/tests not complete. No version bump or stable feed change; do not merge partial draft. Existing authentication, data and playback unchanged.
+
+## 2026-11-26 — ďalší checkpoint PR #41
+
+HEAD `c9311d2f8d70947193147557bee43acc5fe831c6`: plný poľský katalóg 357 kľúčov dopĺňa ruský; runtime načítava UTF-8 JSON iba z povolených jazykových kódov, podporuje aliasy a zachováva English fallback. Nové regresné testy preverujú zhodu kľúčov so všetkými pôvodnými slovníkmi, formátovacie argumenty a reálne použitie externého katalógu. CI `test` job 139658378354 SUCCESS na uvedenom SHA. Zostáva 15 chýbajúcich jazykov (hu, fr, it, es, al, el, et, fa, lt, nl, pt, ro, tr, uk, zh), explicitná finálna kontrola 21/21, audit reálne používaných reťazcov a stabilný release 1.0.4. Žiadna zmena autentifikácie, používateľských dát, existujúceho IPK ani feedu. Webový PR #40 bol nasadený cez Pages run 45738429500 SUCCESS; verejná stránka mimo GitHub spojenia neoverená. Produkcia 1.0.3.
