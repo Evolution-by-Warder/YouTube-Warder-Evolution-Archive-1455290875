@@ -229,8 +229,8 @@ class WebsitePortalTests(unittest.TestCase):
                 for claim in ("Podporuje 21 jazykov vrátane hodín, dátumov a aktualizačných hlásení.", "Supports 21 languages, including clocks, dates and update messages.", "Unterstützt 21 Sprachen einschließlich Uhrzeit, Datum und Update-Meldungen.", "Поддерживает 21 язык, включая часы, даты и сообщения об обновлении."):
                     self.assertIn(claim,card)
                     self.assertIn(claim,detail)
-                self.assertIn("v13.41-r5",card)
-                self.assertIn("v13.41-r5",detail)
+                self.assertIn("v13.41-r6",card)
+                self.assertIn("v13.41-r6",detail)
                 self.assertNotIn("13.41-r4",card)
                 self.assertNotIn("13.41-r4",detail)
         script=(docs/"portal.js").read_text()
