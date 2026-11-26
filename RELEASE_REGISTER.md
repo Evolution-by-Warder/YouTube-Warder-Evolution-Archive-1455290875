@@ -55,3 +55,7 @@ Web PR #42, merge/main `3ca95748126b8d0ca3b9151c71e77469e67452e0`, GitHub Pages 
 ## 2026-11-26 — GSU r5 web synchronization candidate
 
 GSU PR #14, source `9e03199394ca498d30120cca5cf184752e0f1bbf`, canonical publisher 45763722273, IPK 3812194 B, SHA-256 `17de1b2624dd90b77d2c8c05ceba997e683c2d66d888212dda21e31233ef7085`. Production record confirms native matrices and published IPK/sidecar verification. Main and original-python314 stable feed r5 match. SK/EN/DE/RU catalogue and detail now show r5 and actual 21 languages, lifecycle changes, correct downloads. Pages deployment pending. Separate PR #15 version-normalization effort is not yet production and is not advertised. Other product cards, artwork, account data and runtime unchanged.
+
+## 2026-11-26 — GSU r6 supersedes r5 website candidate
+
+PR #15/#17, immutable source `45a9fad7be6e20a6eae6055c0cb59551be45b9f9`, publisher [45773458863](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/actions/runs/45773458863), 11/11 jobs SUCCESS. GitHub release v13.41-r6 IPK 3813348 B, SHA-256 `a8e79609147666b27f18460b3340e099bb013664478a787746bcf56bb28052e2`; both main and original-python314 stable feeds match, production record confirms public bytes and sidecar verified. SK/EN/DE/RU detail and catalogue updated to r6, preserving 21-language claim. Modern 0.41.5 is not published and is being developed separately by Work. Pages deployment pending. No plugin, authentication, artwork or data changes.
