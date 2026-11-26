@@ -5,6 +5,12 @@ English is the explicit fallback; no user-selected duplicate language setting.
 The skin is native and every view can translate its controls on construction.
 """
 import os
+import json
+from functools import lru_cache
+from pathlib import Path
+
+LANGUAGES = ('en', 'sk', 'cs', 'de', 'pl', 'hu', 'ru', 'fr', 'it', 'es', 'al', 'el', 'et', 'fa', 'lt', 'nl', 'pt', 'ro', 'tr', 'uk', 'zh')
+ALIASES = {'sq': 'al', 'gr': 'el', 'cz': 'cs', 'ua': 'uk', 'cn': 'zh'}
 
 MESSAGES = {
     "en": {
@@ -1162,7 +1168,23 @@ def language_code():
         raw = language.getLanguage()
     except (ImportError, AttributeError, TypeError):
         raw = os.environ.get("LANGUAGE") or os.environ.get("LANG") or "en"
-    return str(raw).split(":")[0].split("_")[0].split("-")[0].lower()
+    code = str(raw).split(":")[0].split("_")[0].split("-")[0].lower()
+    code = ALIASES.get(code, code)
+    return code if code in LANGUAGES else 'en'
+
+
+@lru_cache(maxsize=32)
+def external_catalog(code):
+    if code not in LANGUAGES or code in MESSAGES:
+        return {}
+    try:
+        path = Path(__file__).resolve().parent / 'locale' / (code + '.json')
+        values = json.loads(path.read_text(encoding='utf-8'))
+        if not isinstance(values, dict):
+            return {}
+        return {key: value for key, value in values.items() if isinstance(value, str) and value.strip()}
+    except (OSError, ValueError, UnicodeError):
+        return {}
 
 
 def tr(message):
@@ -1172,5 +1194,7 @@ def tr(message):
         return MESSAGES["sk"].get(message, message)
     # Unsupported system languages fall back to English, not an accidental
     # mixture of untranslated Slovak UI strings.
-    return MESSAGES.get(selected, {}).get(
-        message, MESSAGES.get("en", {}).get(message, message))
+    catalog = MESSAGES.get(selected)
+    if catalog is None:
+        catalog = external_catalog(selected)
+    return catalog.get(message, MESSAGES.get("en", {}).get(message, message))
