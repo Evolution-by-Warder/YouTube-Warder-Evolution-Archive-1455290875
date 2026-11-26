@@ -53,7 +53,7 @@ class PackagingTests(unittest.TestCase):
                 members = tar.getmembers()
                 self.assertGreaterEqual(len(members), 10)
                 self.assertTrue(all(x.name.startswith("./" + m.TARGET_PREFIX + "/") for x in members))
-                self.assertTrue(all(x.name.endswith((".py", ".png", "/NOTICE", "/COPYING.GPLv2")) for x in members))
+                self.assertTrue(all(x.name.endswith((".py", ".png", ".json", "/NOTICE", "/COPYING.GPLv2")) for x in members))
                 self.assertTrue(any(x.name.endswith("/youtube_engine/extractor.py") for x in members))
                 self.assertTrue(any(x.name.endswith("/youtube_engine/COPYING.GPLv2") for x in members))
                 self.assertEqual(len({x.name for x in members}), len(members))
@@ -82,6 +82,25 @@ class PackagingTests(unittest.TestCase):
                     self.assertEqual(tuple(int.from_bytes(raw[i:i+4], "big")
                                            for i in (16, 20)), dimensions)
                     self.assertEqual(raw[25], 6)  # RGBA, alpha transparency
+
+    def test_stable_ipk_contains_every_locale_catalogue(self):
+        from unittest.mock import patch
+        import json
+        spec = importlib.util.spec_from_file_location("stable_builder", P.parent.parent / "scripts/build_ipk.py")
+        builder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(builder)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(builder, "ROOT", Path(tmp)):
+            builder.main()
+            path = next(Path(tmp).glob("*.ipk"))
+            parts = ar_parts(path.read_bytes())
+            with tarfile.open(fileobj=io.BytesIO(parts["data.tar.gz"]), mode="r:gz") as tar:
+                expected = {"al", "el", "et", "fa", "fr", "hu", "it", "es", "lt", "nl", "pl", "pt", "ro", "ru", "tr", "uk", "zh"}
+                for code in expected:
+                    raw = tar.extractfile(builder.PREFIX + "/locale/" + code + ".json").read()
+                    self.assertEqual(len(json.loads(raw)), 357, code)
+                extra = json.loads(tar.extractfile(builder.PREFIX + "/locale_extra.json").read())
+                self.assertEqual(len(extra), 21)
+                self.assertTrue(all(len(catalogue) >= 57 for catalogue in extra.values()))
 
     def test_video_focus_frames_are_transparent_inside_and_bright_on_edge(self):
         import zlib
@@ -137,7 +156,7 @@ class PackagingTests(unittest.TestCase):
             and any(isinstance(target, Name) and target.id == "CURRENT_VERSION"
                     for target in node.targets)
         ]
-        self.assertEqual(values, ["1.0.3"])
+        self.assertEqual(values, ["1.0.4"])
 
     def test_hooks_are_non_destructive(self):
         for name, script in m.control_scripts().items():

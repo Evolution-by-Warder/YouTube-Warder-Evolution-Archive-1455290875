@@ -36,3 +36,7 @@ HEAD `4a0c37ee6895dd450bd029410246e7807e6242b0`: desať kompletných externých 
 ## 2026-11-26 — Romanian localization checkpoint
 
 Commit `68e16fb618370078c4dc02665e6084f16c30058c`: Romanian full 357-key catalogue added; exact key count and ordered format placeholders verified before write. Candidate now contains 15/21 languages (11 external catalogues + 4 original runtime dictionaries). Remaining: al, el, et, fa, lt, tr; keyboard and additional runtime audit; version/notes and verified stable publication. PR #41 stays draft; production 1.0.3 and feeds unchanged. CI at checkpoint: test success.
+
+## 2026-11-26 — 1.0.4 stable release candidate, PR #41
+
+All 21 runtime languages: four original dictionaries and 17 actual translated UTF-8 catalogues of 357 keys. Additional 57 runtime messages in all 21 languages include playback, OAuth, live subscriptions, keyboard and every explicit updater error; numeric opkg return code retained. Fallback keyboard coverage expanded (Chinese uses ASCII/pinyin fallback; native image keyboard determines IME availability); secret input remains masked ASCII. Exact tested predecessor `884b735850ec96aa8b17f36192ef8cff2f1829e5`, CI test job 139691268547 SUCCESS. Candidate advances source/control/README to 1.0.4, adds stable IPK locale inclusion regression and public asset byte comparison before stable manifest publication. No release, tag or feed change until exact candidate CI success and merge. Existing authentication, user data and graphics unchanged. Physical receiver validation remains separate from CI.
