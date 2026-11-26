@@ -21,7 +21,7 @@ class WarderYouTubeKeyboard(Screen):
         add_header(self)
         self.limit = max(1, min(256, int(limit)))
         self.value = str(value or "")[:self.limit]
-        self.rows = keyboard_rows()
+        self.rows = keyboard_rows("en" if secret else None)
         self.characters = "".join(self.rows)
         self.secret = bool(secret)
         self.position = 10

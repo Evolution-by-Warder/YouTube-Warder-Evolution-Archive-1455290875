@@ -82,7 +82,7 @@ def load():
         return d
     fake = {
         "_inline_test": parent,
-        "_inline_test.i18n": types.SimpleNamespace(tr=lambda value: value),
+        "_inline_test.i18n": types.SimpleNamespace(tr=lambda value: value, update_error_text=lambda value: value),
         "_inline_test.update_core": types.SimpleNamespace(
             check_update=lambda version: None, install_update=lambda *a, **k: None,
             UpdateError=ValueError),

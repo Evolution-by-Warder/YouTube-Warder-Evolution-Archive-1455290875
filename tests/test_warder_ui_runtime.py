@@ -211,7 +211,7 @@ class WarderNativeUiTests(unittest.TestCase):
             ("cs_CZ", "áčďéěíňřšť", "qwertyuiop"),
             ("de_DE", "äöüßéèàâêî", "qwertzuiop"),
             ("en_GB", "@#:/_()+*?", "qwertyuiop"),
-            ("fr_FR", "@#:/_()+*?", "qwertyuiop"),
+            ("fr_FR", "àâçéèêëîôù", "qwertyuiop"),
         ):
             with self.subTest(locale=locale):
                 rows = m.keyboard_rows(locale)
@@ -254,6 +254,19 @@ class WarderNativeUiTests(unittest.TestCase):
         self.assertEqual(k.value, "qw ")
         k.submit()
         self.assertEqual(k.closed_args, ("qw",))
+
+    def test_keyboard_all_languages_and_safe_secret_input(self):
+        m = load("keyboard")
+        self.assertEqual(len(m.KEYBOARDS), 21)
+        for code, rows in m.KEYBOARDS.items():
+            self.assertEqual(len(rows), 5, code)
+            self.assertTrue(all(len(row) == 10 for row in rows), code)
+        for alias, code in (("sq", "al"), ("gr", "el"), ("cz", "cs"), ("ua", "uk"), ("cn", "zh")):
+            self.assertEqual(m.keyboard_rows(alias), m.keyboard_rows(code))
+        for code, character in (("el", "α"), ("ru", "я"), ("uk", "ї"), ("fa", "پ")):
+            self.assertIn(character, "".join(m.keyboard_rows(code)))
+        k = m.WarderYouTubeKeyboard(None, secret=True)
+        self.assertTrue(all(ord(c) < 128 for c in k.characters))
 
     def test_keyboard_red_cancels_and_secret_value_is_masked(self):
         m = load("keyboard")
