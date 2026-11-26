@@ -7,7 +7,7 @@ yes/no confirmation is the only dialog. No separate update Screen is opened.
 from twisted.internet import reactor
 from twisted.internet.threads import deferToThread
 
-from .i18n import tr as _
+from .i18n import tr as _, update_error_text
 from .update_core import check_update, install_update, UpdateError
 from .installed_version import read_installed_version
 
@@ -298,6 +298,6 @@ class InlineUpdater:
         self.installing = False
         self.home._busy = False
         safe = getattr(err, "value", None)
-        self.error = str(safe) if isinstance(safe, UpdateError) else _(
+        self.error = update_error_text(str(safe)) if isinstance(safe, UpdateError) else _(
             "Nepodarilo sa dokončiť aktualizáciu.")
         self.show()

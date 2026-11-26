@@ -142,7 +142,7 @@ class LanguageTests(unittest.TestCase):
         extra = lang.extra_catalogs()
         self.assertEqual(set(extra), set(lang.LANGUAGES))
         keys = set(extra["en"])
-        self.assertGreaterEqual(len(keys), 20)
+        self.assertGreaterEqual(len(keys), 57)
         for code, values in extra.items():
             self.assertEqual(set(values), keys)
             for key, value in values.items():
@@ -150,6 +150,23 @@ class LanguageTests(unittest.TestCase):
                 self.assertTrue(value.strip())
                 self.assertEqual(self.translate(code, key), value)
         self.assertEqual(self.translate("xx_XX", "Prihlásenie do YouTube"), "Sign in to YouTube")
+
+    def test_update_error_messages_keep_diagnostic_code_in_all_languages(self):
+        import ast
+        source = (P.parent / "update_core.py").read_text(encoding="utf-8")
+        keys = set()
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "UpdateError" and node.args:
+                arg = node.args[0]
+                if isinstance(arg, ast.BinOp):
+                    arg = arg.left
+                if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                    keys.add(arg.value)
+        for code in lang.LANGUAGES:
+            self.assertTrue(keys <= set(lang.extra_catalogs()[code]), code)
+            with patch.object(lang, "language_code", return_value=code):
+                self.assertIn("-7", lang.update_error_text("Inštalácia opkg skončila chybou (-7)."))
+                self.assertEqual(lang.update_error_text("Balík je nekompletný."), lang.extra_catalogs()[code]["Balík je nekompletný."])
 
     def test_unknown_keys_stay_human_readable(self):
         self.assertEqual(self.translate("en_GB", "Warder Evolution"), "Warder Evolution")

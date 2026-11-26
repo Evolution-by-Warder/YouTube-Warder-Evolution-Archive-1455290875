@@ -17,7 +17,7 @@ from twisted.internet.threads import deferToThread
 
 from .skin import UPDATE_SKIN, UPDATE_CHECK_SKIN
 from .update_core import install_update, check_update, CURRENT_VERSION, UpdateError
-from .i18n import tr as _
+from .i18n import tr as _, update_error_text
 from .confirm_ui import WarderYouTubeConfirm
 
 
@@ -115,7 +115,7 @@ class WarderYouTubeUpdateProgress(Screen):
         self.failed = True
         # Never display Twisted Failure repr; it could contain a request URL.
         safe_type = getattr(failure, "value", None)
-        detail = str(safe_type) if isinstance(safe_type, UpdateError) else (
+        detail = update_error_text(str(safe_type)) if isinstance(safe_type, UpdateError) else (
             _("Nepodarilo sa dokončiť aktualizáciu.")
         )
         self["phase"].setText(_("Aktualizácia zlyhala."))
@@ -207,7 +207,7 @@ class WarderYouTubeUpdateCheck(Screen):
         self["key_green"].setText("")
         problem = getattr(failure, "value", None)
         self["status"].setText(_("Kontrola aktualizácie zlyhala."))
-        self["detail"].setText(str(problem) if isinstance(problem, UpdateError)
+        self["detail"].setText(update_error_text(str(problem)) if isinstance(problem, UpdateError)
                                else _("Nepodarilo sa kontaktovať aktualizačný server."))
         self["footer"].setText(_("EXIT: späť"))
 

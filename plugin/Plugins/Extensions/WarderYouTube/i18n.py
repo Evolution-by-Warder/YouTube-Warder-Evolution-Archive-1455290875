@@ -5,6 +5,7 @@ English is the explicit fallback; no user-selected duplicate language setting.
 The skin is native and every view can translate its controls on construction.
 """
 import os
+import re
 import json
 from functools import lru_cache
 from pathlib import Path
@@ -1214,3 +1215,11 @@ def tr(message):
     if catalog is None:
         catalog = external_catalog(selected)
     return catalog.get(message, MESSAGES.get("en", {}).get(message, message))
+
+
+def update_error_text(message):
+    """Localize validated updater errors without altering backend diagnostics."""
+    match = re.fullmatch(r"Inštalácia opkg skončila chybou \((-?\d+)\)\.", message)
+    if match:
+        return tr("Inštalácia opkg skončila chybou (%d).") % int(match.group(1))
+    return tr(message)
