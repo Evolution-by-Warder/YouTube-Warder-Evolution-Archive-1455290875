@@ -51,3 +51,7 @@ PR #41 exact reviewed HEAD `4fec39d92c488d3faaafaf102097666c9a4243a3`, CI job 13
 ## 2026-11-26 — Website deployment verified
 
 Web PR #42, merge/main `3ca95748126b8d0ca3b9151c71e77469e67452e0`, GitHub Pages [run 45755609359](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/actions/runs/45755609359) completed SUCCESS at the exact merge SHA. SK/EN/DE/RU website version 1.0.4 and release links are deployed by Pages. GitHub release asset SHA-256 `ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f`, 739858 bytes, matches live main stable feed. Direct public custom-domain browser access was not independently performed, in accordance with the GitHub-only scope. No change to plugin, feeds, authentication, graphics or data.
+
+## 2026-11-26 — GSU r5 web synchronization candidate
+
+GSU PR #14, source `9e03199394ca498d30120cca5cf184752e0f1bbf`, canonical publisher 45763722273, IPK 3812194 B, SHA-256 `17de1b2624dd90b77d2c8c05ceba997e683c2d66d888212dda21e31233ef7085`. Production record confirms native matrices and published IPK/sidecar verification. Main and original-python314 stable feed r5 match. SK/EN/DE/RU catalogue and detail now show r5 and actual 21 languages, lifecycle changes, correct downloads. Pages deployment pending. Separate PR #15 version-normalization effort is not yet production and is not advertised. Other product cards, artwork, account data and runtime unchanged.
