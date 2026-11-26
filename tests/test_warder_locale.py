@@ -1,5 +1,7 @@
 """Live Enigma2 language selection drives Warder UI without user overrides."""
 import importlib.util
+import json
+import re
 from pathlib import Path
 import sys
 import types
@@ -104,12 +106,36 @@ class LanguageTests(unittest.TestCase):
         source = "API kľúč: nastavený"
         self.assertEqual(self.translate("sk_SK", source), source)
         self.assertEqual(self.translate("en_GB", source), "API key: configured")
-        self.assertEqual(self.translate("pl_PL", source), "API key: configured")
+        self.assertEqual(self.translate("xx_XX", source), "API key: configured")
 
     def test_default_german_and_czech_status(self):
         source = "Testovací kanál: používate najnovšiu dostupnú verziu."
         self.assertIn("Testkanal", self.translate("de_DE", source))
         self.assertIn("Testovací", self.translate("cs_CZ", source))
+
+    def test_external_catalogues_have_exact_keys_and_format_arguments(self):
+        keys = set().union(*(catalog.keys() for catalog in lang.MESSAGES.values()))
+        placeholders = re.compile(r"%(?:\([^)]+\))?[-+#0 ]*\d*(?:\.\d+)?[diouxXeEfFgGcrsa%]")
+        paths = list((P.parent / "locale").glob("*.json"))
+        self.assertTrue(paths)
+        for path in paths:
+            with self.subTest(language=path.stem):
+                self.assertIn(path.stem, lang.LANGUAGES)
+                values = json.loads(path.read_text(encoding="utf-8"))
+                self.assertEqual(set(values), keys)
+                for key, value in values.items():
+                    self.assertIsInstance(value, str)
+                    self.assertTrue(value.strip(), key)
+                    source = lang.MESSAGES["en"].get(key, key)
+                    self.assertEqual(placeholders.findall(value), placeholders.findall(source), key)
+                    self.assertEqual(self.translate(path.stem, key), value)
+
+    def test_russian_runtime_and_aliases(self):
+        self.assertEqual(self.translate("ru_RU", "Search"), lang.external_catalog("ru")["Search"])
+        self.assertNotEqual(self.translate("ru_RU", "Search"), "Search")
+        for alias, canonical in lang.ALIASES.items():
+            self.assertEqual(self.translate(alias, "Search"), self.translate(canonical, "Search"))
+        self.assertEqual(self.translate("../../etc", "Search"), "Search")
 
     def test_unknown_keys_stay_human_readable(self):
         self.assertEqual(self.translate("en_GB", "Warder Evolution"), "Warder Evolution")
