@@ -19,3 +19,7 @@
 ## 2026-11-26 – synchronizácia webu (schválená nočná dávka)
 
 FullHDGlass v1.0.94: PR #206, HEAD `697a98d27b8a490676f68e04c4871b0ec5a5078e`, 25/25 CI, merge `3e2b7107f1b2af584f21335815a1be5594d0f5bf`, GitHub asset SHA-256 `9dd3300cafffcdaa522b308c22dda863b6bc47ee190ba3f6c24ba235bbcd6028`. PiconHub v0.1.46: PR #110, HEAD `52fe05f39c8b2d4d8ed70ca82334a57457fe9e57`, 7/7 relevantných CI, merge `8b68eacfdd8522542e69f4cb5f5cb691fb278fd8`, GitHub asset SHA-256 `e8cca6447aac6dbffafba09fadf702e7200674003bf9ae5cebab84340619ab1b`. Webový kandidát aktualizuje SK/EN/DE/RU, odkazy a reálnu podporu PiconHub 21 jazykov. Nasadenie Pages zatiaľ neoverené. GSU 13.41-r4 a YouTube 1.0.3 ponechané bez zmeny; rozšírenie jazykov nepublikované. Radio 0.2.2 ponechané bez prázdneho vydania.
+
+## 2026-11-26 – 21-language localization candidate (incomplete)
+
+Base `e6f45880f89ba4cdcdfd0e323f502b2aca8f5eb5`. Union of existing four runtime dictionaries: 357 source keys (English map 161, Slovak 343, Czech 342, German 343). Russian full 357-key catalogue staged, placeholder sequences checked against English. Remaining 16 languages and runtime integration/tests not complete. No version bump or stable feed change; do not merge partial draft. Existing authentication, data and playback unchanged.
