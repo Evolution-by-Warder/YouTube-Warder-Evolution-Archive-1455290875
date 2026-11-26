@@ -15,3 +15,7 @@
 **Verejný popis:** Používaj neutrálne vyjadrenie „Vylepšený autentifikačný kód, stabilita autorizácie a automatické obnovovanie relácie“. Neprezentuj autentifikáciu ako úplne nové prihlasovanie a neuvádzaj pôvod technického riešenia v marketingovom popise. Technické testy a záznamy zostávajú pravdivé.
 
 **Súvisiace práce:** [PR #11](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/pull/11) – vývojová séria; produkčná vetva `release/youtube-warder-1.0.3-20261124`. Podrobnosti: [RELEASE_NOTES_1.0.3.md](RELEASE_NOTES_1.0.3.md).
+
+## 2026-11-26 – synchronizácia webu (schválená nočná dávka)
+
+FullHDGlass v1.0.94: PR #206, HEAD `697a98d27b8a490676f68e04c4871b0ec5a5078e`, 25/25 CI, merge `3e2b7107f1b2af584f21335815a1be5594d0f5bf`, GitHub asset SHA-256 `9dd3300cafffcdaa522b308c22dda863b6bc47ee190ba3f6c24ba235bbcd6028`. PiconHub v0.1.46: PR #110, HEAD `52fe05f39c8b2d4d8ed70ca82334a57457fe9e57`, 7/7 relevantných CI, merge `8b68eacfdd8522542e69f4cb5f5cb691fb278fd8`, GitHub asset SHA-256 `e8cca6447aac6dbffafba09fadf702e7200674003bf9ae5cebab84340619ab1b`. Webový kandidát aktualizuje SK/EN/DE/RU, odkazy a reálnu podporu PiconHub 21 jazykov. Nasadenie Pages zatiaľ neoverené. GSU 13.41-r4 a YouTube 1.0.3 ponechané bez zmeny; rozšírenie jazykov nepublikované. Radio 0.2.2 ponechané bez prázdneho vydania.
