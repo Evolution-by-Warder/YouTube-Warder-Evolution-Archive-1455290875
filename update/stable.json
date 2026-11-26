@@ -3,11 +3,11 @@
   "product": "YouTube Warder Evolution",
   "channel": "stable",
   "release": {
-    "version": "1.0.3",
-    "tag": "youtube-warder-v1.0.3",
-    "url": "https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/releases/download/youtube-warder-v1.0.3/enigma2-plugin-extensions-youtube-warder-evolution_1.0.3_all.ipk",
-    "sha256": "a0305e178d168d7d13f00eef1e70077d18a37757ea74191944695a2bef9e8c5f",
-    "bytes": 620630,
-    "notes": "Stable YouTube Warder Evolution 1.0.3"
+    "version": "1.0.4",
+    "tag": "youtube-warder-v1.0.4",
+    "url": "https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/releases/download/youtube-warder-v1.0.4/enigma2-plugin-extensions-youtube-warder-evolution_1.0.4_all.ipk",
+    "sha256": "ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f",
+    "bytes": 739858,
+    "notes": "Stable YouTube Warder Evolution 1.0.4"
   }
 }
