@@ -1,5 +1,11 @@
 # YouTube Warder Evolution – register vydaní a overení
 
+## 26. 11. 2026 · GSU Warder Evolution 0.41.5
+
+[GSU v0.41.5](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/releases/tag/v0.41.5) je stabilné vydanie z [PR #16](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/pull/16), zdroj 30a420d5019446c1b33f48fe586addc5f9ead153. Publikačný [workflow 45786453936](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/actions/runs/45786453936) overil verejný IPK s veľkosťou 3 873 060 bajtov a SHA-256 115bc57d4c842049d72864a0e2deaf0eceb35f0bb7d53f515cc5533e9abc48fc. Samostatný moderný feed je aktívny od commitu fac1e9a9a9a7ab022f75361dc0af94b0c44e80b2. Pôvodný r6 a r93 slúžia na migráciu.
+
+Existujúci [webový PR #44](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/pull/44) synchronizuje katalóg a stránku GSU v SK/EN/DE/RU. Nové texty opisujú sedem centier, 21 jazykov, podporované rozlíšenia a hranice testovania. Fyzické snímky v galérii sú označené ako predchádzajúce rozhranie. Finálna kontrola živého webu a nasadenia Pages patrí do produkčného registra GSU.
+
 ## 2026-11-24 – verzia 1.0.3
 
 **Rozsah schválený vlastníkom:** nové ostré IPK po testovacej sérii 1.0.2~test1 až 1.0.2~test5, spolu so zápisom všetkých zmien do projektu. Príprava pokračuje z testovacej vetvy bez opakovania hotových úloh.
@@ -51,3 +57,11 @@ PR #41 exact reviewed HEAD `4fec39d92c488d3faaafaf102097666c9a4243a3`, CI job 13
 ## 2026-11-26 — Website deployment verified
 
 Web PR #42, merge/main `3ca95748126b8d0ca3b9151c71e77469e67452e0`, GitHub Pages [run 45755609359](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/actions/runs/45755609359) completed SUCCESS at the exact merge SHA. SK/EN/DE/RU website version 1.0.4 and release links are deployed by Pages. GitHub release asset SHA-256 `ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f`, 739858 bytes, matches live main stable feed. Direct public custom-domain browser access was not independently performed, in accordance with the GitHub-only scope. No change to plugin, feeds, authentication, graphics or data.
+
+## 2026-11-26 — GSU r5 web synchronization candidate
+
+GSU PR #14, source `9e03199394ca498d30120cca5cf184752e0f1bbf`, canonical publisher 45763722273, IPK 3812194 B, SHA-256 `17de1b2624dd90b77d2c8c05ceba997e683c2d66d888212dda21e31233ef7085`. Production record confirms native matrices and published IPK/sidecar verification. Main and original-python314 stable feed r5 match. SK/EN/DE/RU catalogue and detail now show r5 and actual 21 languages, lifecycle changes, correct downloads. Pages deployment pending. Separate PR #15 version-normalization effort is not yet production and is not advertised. Other product cards, artwork, account data and runtime unchanged.
+
+## 2026-11-26 — GSU r6 supersedes r5 website candidate
+
+PR #15/#17, immutable source `45a9fad7be6e20a6eae6055c0cb59551be45b9f9`, publisher [45773458863](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/actions/runs/45773458863), 11/11 jobs SUCCESS. GitHub release v13.41-r6 IPK 3813348 B, SHA-256 `a8e79609147666b27f18460b3340e099bb013664478a787746bcf56bb28052e2`; both main and original-python314 stable feeds match, production record confirms public bytes and sidecar verified. SK/EN/DE/RU detail and catalogue updated to r6, preserving 21-language claim. Modern 0.41.5 is not published and is being developed separately by Work. Pages deployment pending. No plugin, authentication, artwork or data changes.
