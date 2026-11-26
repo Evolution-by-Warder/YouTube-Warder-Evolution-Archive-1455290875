@@ -83,6 +83,41 @@ class PackagingTests(unittest.TestCase):
                                            for i in (16, 20)), dimensions)
                     self.assertEqual(raw[25], 6)  # RGBA, alpha transparency
 
+    def test_stable_ipk_contains_every_locale_catalogue(self):
+        from unittest.mock import patch
+        import json
+        spec = importlib.util.spec_from_file_location("stable_builder", P.parent.parent / "scripts/build_ipk.py")
+        builder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(builder)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(builder, "ROOT", Path(tmp)):
+            builder.main()
+            path = next(Path(tmp).glob("*.ipk"))
+            parts = ar_parts(path.read_bytes())
+            with tarfile.open(fileobj=io.BytesIO(parts["data.tar.gz"]), mode="r:gz") as tar:
+                expected = {"al", "el", "et", "fa", "fr", "hu", "it", "es", "lt", "nl", "pl", "pt", "ro", "ru", "tr", "uk", "zh"}
+                import ast
+                raw = tar.extractfile(builder.PREFIX + "/locale_data.py").read()
+                values = {node.targets[0].id: ast.literal_eval(node.value)
+                          for node in ast.parse(raw).body if isinstance(node, ast.Assign)}
+                self.assertEqual(set(values["CATALOGUES"]), expected)
+                for code in expected:
+                    original = json.loads((builder.SRC / "locale" / (code + ".json")).read_text(encoding="utf-8"))
+                    self.assertEqual(len(original), 357, code)
+                    self.assertEqual(values["CATALOGUES"][code], original)
+                extra = values["EXTRA"]
+                self.assertEqual(extra, json.loads((builder.SRC / "locale_extra.json").read_text(encoding="utf-8")))
+                self.assertEqual(len(extra), 21)
+                self.assertTrue(all(len(catalogue) >= 57 for catalogue in extra.values()))
+                self.assertFalse(any(member.name.endswith(".json") for member in tar.getmembers()))
+            # Use the existing strict updater validator, not an expanded allowlist.
+            import hashlib
+            spec = importlib.util.spec_from_file_location("stable_update", builder.SRC / "update_core.py")
+            updater = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(updater)
+            data = path.read_bytes()
+            self.assertTrue(updater.validate_ipk(path, {"version": updater.CURRENT_VERSION,
+                                                      "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}))
+
     def test_video_focus_frames_are_transparent_inside_and_bright_on_edge(self):
         import zlib
         # The selected border must pop against dark, one/two-pixel static
@@ -137,7 +172,7 @@ class PackagingTests(unittest.TestCase):
             and any(isinstance(target, Name) and target.id == "CURRENT_VERSION"
                     for target in node.targets)
         ]
-        self.assertEqual(values, ["1.0.3"])
+        self.assertEqual(values, ["1.0.4"])
 
     def test_hooks_are_non_destructive(self):
         for name, script in m.control_scripts().items():

@@ -64,6 +64,12 @@ jobs:
           else
             gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" --title "YouTube Warder Evolution ${VERSION}" --notes-file "RELEASE_NOTES_${VERSION}.md" --latest
           fi
+          # Independently download the public release without an authorization
+          # header. Do not update the stable feed until byte-for-byte verified.
+          PUBLIC_URL="https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/releases/download/$TAG/$ASSET"
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 120 --output "$RUNNER_TEMP/public-release.ipk" "$PUBLIC_URL"
+          cmp "$ASSET" "$RUNNER_TEMP/public-release.ipk"
+          sha256sum "$RUNNER_TEMP/public-release.ipk"
           python3 - <<'PY'
           import json,pathlib
           root=pathlib.Path.cwd(); meta=json.loads((root/'release_meta.json').read_text())

@@ -1,10 +1,11 @@
 # YouTube – Warder Evolution
 
-## Stable release: 1.0.3 (24 November 2026)
+## Stable release: 1.0.4 (26 November 2026)
 
 YouTube – Warder Evolution is a native Enigma2 YouTube plugin for OpenATV and OpenPLi.
 
 ### Features
+- 21 interface languages selected from Enigma2; localized menus, playback, account and update messages, and language-aware fallback keyboard (Chinese input depends on the native image keyboard).
 - Native Full HD remote-control UI: Home, categories, search and subscriptions.
 - Improved account authentication stability and session renewal, with real YouTube subscriptions and Likes.
 - One-way automatic import of the account's liked videos into receiver-local favourites on each plugin launch; favourites and viewing history remain on the receiver.
@@ -28,11 +29,11 @@ After `opkg` exits, the dependency helper verifies Python modules and yt-dlp. On
 Logs: `/tmp/warder-youtube-deps.log`. An Internet connection and working feeds are required for missing dependencies.
 
 ### Release package
-`enigma2-plugin-extensions-youtube-warder-evolution_1.0.3_all.ipk`
+`enigma2-plugin-extensions-youtube-warder-evolution_1.0.4_all.ipk`
 
 SHA-256: see the verified `update/stable.json` manifest for the current release.
 
-Release notes: [RELEASE_NOTES_1.0.3.md](RELEASE_NOTES_1.0.3.md).
+Release notes: [RELEASE_NOTES_1.0.4.md](RELEASE_NOTES_1.0.4.md).
 
 Release register: [RELEASE_REGISTER.md](RELEASE_REGISTER.md).
 

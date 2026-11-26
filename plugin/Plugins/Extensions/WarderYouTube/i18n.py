@@ -5,6 +5,13 @@ English is the explicit fallback; no user-selected duplicate language setting.
 The skin is native and every view can translate its controls on construction.
 """
 import os
+import re
+import json
+from functools import lru_cache
+from pathlib import Path
+
+LANGUAGES = ('en', 'sk', 'cs', 'de', 'pl', 'hu', 'ru', 'fr', 'it', 'es', 'al', 'el', 'et', 'fa', 'lt', 'nl', 'pt', 'ro', 'tr', 'uk', 'zh')
+ALIASES = {'sq': 'al', 'gr': 'el', 'cz': 'cs', 'ua': 'uk', 'cn': 'zh'}
 
 MESSAGES = {
     "en": {
@@ -1162,15 +1169,69 @@ def language_code():
         raw = language.getLanguage()
     except (ImportError, AttributeError, TypeError):
         raw = os.environ.get("LANGUAGE") or os.environ.get("LANG") or "en"
-    return str(raw).split(":")[0].split("_")[0].split("-")[0].lower()
+    code = str(raw).split(":")[0].split("_")[0].split("-")[0].lower()
+    code = ALIASES.get(code, code)
+    return code if code in LANGUAGES else 'en'
+
+
+@lru_cache(maxsize=32)
+def external_catalog(code):
+    if code not in LANGUAGES or code in MESSAGES:
+        return {}
+    try:
+        from .locale_data import CATALOGUES
+        values = CATALOGUES.get(code, {})
+        if isinstance(values, dict):
+            return {key: value for key, value in values.items() if isinstance(value, str) and value.strip()}
+    except ImportError:
+        pass
+    try:
+        path = Path(__file__).resolve().parent / 'locale' / (code + '.json')
+        values = json.loads(path.read_text(encoding='utf-8'))
+        if not isinstance(values, dict):
+            return {}
+        return {key: value for key, value in values.items() if isinstance(value, str) and value.strip()}
+    except (OSError, ValueError, UnicodeError):
+        return {}
+
+
+@lru_cache(maxsize=1)
+def extra_catalogs():
+    try:
+        from .locale_data import EXTRA
+        return EXTRA if isinstance(EXTRA, dict) else {}
+    except ImportError:
+        pass
+    try:
+        values = json.loads((Path(__file__).resolve().parent / "locale_extra.json").read_text(encoding="utf-8"))
+        return values if isinstance(values, dict) else {}
+    except (OSError, ValueError, UnicodeError):
+        return {}
 
 
 def tr(message):
     selected = language_code()
+    extras = extra_catalogs()
+    local = extras.get(selected, {})
+    fallback = extras.get("en", {})
+    if isinstance(local, dict) and isinstance(local.get(message), str) and local[message]:
+        return local[message]
+    if isinstance(fallback, dict) and isinstance(fallback.get(message), str) and fallback[message]:
+        return fallback[message]
     if selected == "sk":
         # A Slovak source message stays Slovak unless explicitly overridden.
         return MESSAGES["sk"].get(message, message)
     # Unsupported system languages fall back to English, not an accidental
     # mixture of untranslated Slovak UI strings.
-    return MESSAGES.get(selected, {}).get(
-        message, MESSAGES.get("en", {}).get(message, message))
+    catalog = MESSAGES.get(selected)
+    if catalog is None:
+        catalog = external_catalog(selected)
+    return catalog.get(message, MESSAGES.get("en", {}).get(message, message))
+
+
+def update_error_text(message):
+    """Localize validated updater errors without altering backend diagnostics."""
+    match = re.fullmatch(r"Inštalácia opkg skončila chybou \((-?\d+)\)\.", message)
+    if match:
+        return tr("Inštalácia opkg skončila chybou (%d).") % int(match.group(1))
+    return tr(message)

@@ -19,3 +19,26 @@
 ## 2026-11-26 – synchronizácia webu (schválená nočná dávka)
 
 FullHDGlass v1.0.94: PR #206, HEAD `697a98d27b8a490676f68e04c4871b0ec5a5078e`, 25/25 CI, merge `3e2b7107f1b2af584f21335815a1be5594d0f5bf`, GitHub asset SHA-256 `9dd3300cafffcdaa522b308c22dda863b6bc47ee190ba3f6c24ba235bbcd6028`. PiconHub v0.1.46: PR #110, HEAD `52fe05f39c8b2d4d8ed70ca82334a57457fe9e57`, 7/7 relevantných CI, merge `8b68eacfdd8522542e69f4cb5f5cb691fb278fd8`, GitHub asset SHA-256 `e8cca6447aac6dbffafba09fadf702e7200674003bf9ae5cebab84340619ab1b`. Webový kandidát aktualizuje SK/EN/DE/RU, odkazy a reálnu podporu PiconHub 21 jazykov. Nasadenie Pages zatiaľ neoverené. GSU 13.41-r4 a YouTube 1.0.3 ponechané bez zmeny; rozšírenie jazykov nepublikované. Radio 0.2.2 ponechané bez prázdneho vydania.
+
+## 2026-11-26 – 21-language localization candidate (incomplete)
+
+Base `e6f45880f89ba4cdcdfd0e323f502b2aca8f5eb5`. Union of existing four runtime dictionaries: 357 source keys (English map 161, Slovak 343, Czech 342, German 343). Russian full 357-key catalogue staged, placeholder sequences checked against English. Remaining 16 languages and runtime integration/tests not complete. No version bump or stable feed change; do not merge partial draft. Existing authentication, data and playback unchanged.
+
+## 2026-11-26 — ďalší checkpoint PR #41
+
+HEAD `c9311d2f8d70947193147557bee43acc5fe831c6`: plný poľský katalóg 357 kľúčov dopĺňa ruský; runtime načítava UTF-8 JSON iba z povolených jazykových kódov, podporuje aliasy a zachováva English fallback. Nové regresné testy preverujú zhodu kľúčov so všetkými pôvodnými slovníkmi, formátovacie argumenty a reálne použitie externého katalógu. CI `test` job 139658378354 SUCCESS na uvedenom SHA. Zostáva 15 chýbajúcich jazykov (hu, fr, it, es, al, el, et, fa, lt, nl, pt, ro, tr, uk, zh), explicitná finálna kontrola 21/21, audit reálne používaných reťazcov a stabilný release 1.0.4. Žiadna zmena autentifikácie, používateľských dát, existujúceho IPK ani feedu. Webový PR #40 bol nasadený cez Pages run 45738429500 SUCCESS; verejná stránka mimo GitHub spojenia neoverená. Produkcia 1.0.3.
+
+## 2026-11-26 — rozšírenie na 14 z 21 jazykov, PR #41
+
+HEAD `4a0c37ee6895dd450bd029410246e7807e6242b0`: desať kompletných externých UTF-8 katalógov po 357 kľúčoch (ru, pl, fr, es, it, hu, pt, zh, uk, nl) + štyri pôvodné runtime slovníky. Kontrola formátovacích argumentov pred každým commitom. Predchádzajúci HEAD `5fbda4d860a2b2f741d501af215d2fa6847bc320` CI test job 139661010967 SUCCESS; najnovší HEAD: test 139661429964: completed/success. Zostáva sedem katalógov al, el, et, fa, lt, ro, tr, finálna kontrola všetkých 21 jazykov a audit reálne používaných reťazcov. Neaktivovať verziu 1.0.4 pred kompletnou lokalizáciou a úspešným CI. Produkčné IPK 1.0.3, feed, autentifikácia a používateľské údaje nezmenené.
+
+
+## 2026-11-26 — Romanian localization checkpoint
+
+Commit `68e16fb618370078c4dc02665e6084f16c30058c`: Romanian full 357-key catalogue added; exact key count and ordered format placeholders verified before write. Candidate now contains 15/21 languages (11 external catalogues + 4 original runtime dictionaries). Remaining: al, el, et, fa, lt, tr; keyboard and additional runtime audit; version/notes and verified stable publication. PR #41 stays draft; production 1.0.3 and feeds unchanged. CI at checkpoint: test success.
+
+## 2026-11-26 — 1.0.4 stable release candidate, PR #41
+
+All 21 runtime languages: four original dictionaries and 17 actual translated UTF-8 catalogues of 357 keys. Additional 57 runtime messages in all 21 languages include playback, OAuth, live subscriptions, keyboard and every explicit updater error; numeric opkg return code retained. Fallback keyboard coverage expanded (Chinese uses ASCII/pinyin fallback; native image keyboard determines IME availability); secret input remains masked ASCII. Exact tested predecessor `884b735850ec96aa8b17f36192ef8cff2f1829e5`, CI test job 139691268547 SUCCESS. Candidate advances source/control/README to 1.0.4, adds stable IPK locale inclusion regression and public asset byte comparison before stable manifest publication. No release, tag or feed change until exact candidate CI success and merge. Existing authentication, user data and graphics unchanged. Physical receiver validation remains separate from CI.
+
+CI job 139691568215 failed on `e4fd551a134a563ec079f1ac1982bfd1cca95545` (450 tests, 2 failures + 2 errors): previous version assertion and strict IPK updater rejected JSON payload files. Rather than weaken the whitelist (which would still leave installed 1.0.3 receivers unable to upgrade), build a deterministic data-only Python resource from the exact translated JSON source, verify all catalogues are identical to source and run the existing strict IPK validator on the stable archive. No change to the legacy updater path checks or to any already released package.

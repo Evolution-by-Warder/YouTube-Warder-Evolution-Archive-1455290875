@@ -120,7 +120,7 @@ def load_updater():
             UPDATE_CHECK_SKIN="<screen/>"
         ),
         "_mock_warder_updates.i18n": make_module(
-            "_mock_warder_updates.i18n", tr=lambda value: value
+            "_mock_warder_updates.i18n", tr=lambda value: value, update_error_text=lambda value: value
         ),
         "_mock_warder_updates.confirm_ui": make_module(
             "_mock_warder_updates.confirm_ui", WarderYouTubeConfirm=object

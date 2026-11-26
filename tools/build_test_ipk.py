@@ -103,7 +103,7 @@ def build(output_dir):
         if source.name == "update_core.py":
             # Candidate must display its actual installed opkg version.
             # Leave the production source constant on main untouched.
-            stable_marker = b'CURRENT_VERSION = "1.0.3"'
+            stable_marker = b'CURRENT_VERSION = "1.0.4"'
             if content.count(stable_marker) != 1:
                 raise ValueError("Unexpected WarderYouTube version source")
             content = content.replace(
@@ -111,6 +111,13 @@ def build(output_dir):
         if SENSITIVE.search(content):
             raise ValueError("Possible API key in source: " + source.name)
         data_files.append((TARGET_PREFIX + "/" + source.name, content, False))
+
+    # Keep even the local-only test IPK installable through older validators.
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location("_stable_locale_builder", ROOT / "scripts/build_ipk.py")
+    locale_builder = module_from_spec(spec)
+    spec.loader.exec_module(locale_builder)
+    data_files.append((TARGET_PREFIX + "/locale_data.py", locale_builder.locale_module(PKG_DIR), False))
 
     for filename, expected in (("plugin.png", (100, 60)),
                                ("plugin_fhd.png", (150, 90))):

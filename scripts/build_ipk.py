@@ -2,6 +2,7 @@
 """Build deterministic IPK from the checked-in plugin and CONTROL files."""
 import gzip
 import io
+import json
 import tarfile
 from pathlib import Path
 
@@ -10,6 +11,15 @@ PACKAGE = "enigma2-plugin-extensions-youtube-warder-evolution"
 SRC = ROOT / "plugin/Plugins/Extensions/WarderYouTube"
 CTRL = ROOT / "packaging/CONTROL"
 PREFIX = "usr/lib/enigma2/python/Plugins/Extensions/WarderYouTube"
+
+def locale_module(src):
+    """Generate data-only Python resource for the legacy 1.0.3 IPK whitelist."""
+    catalogues = {p.stem: json.loads(p.read_text(encoding="utf-8"))
+                  for p in sorted((src / "locale").glob("*.json"))}
+    extra = json.loads((src / "locale_extra.json").read_text(encoding="utf-8"))
+    return ("# -*- coding: utf-8 -*-\n# Generated from checked-in JSON; data only.\n"
+            + "CATALOGUES = " + repr(catalogues) + "\nEXTRA = " + repr(extra) + "\n").encode("utf-8")
+
 
 def tar_gz(items):
     plain = io.BytesIO()
@@ -23,7 +33,7 @@ def tar_gz(items):
                 info.type = tarfile.DIRTYPE
                 ar.addfile(info)
             else:
-                content = path.read_bytes()
+                content = path if isinstance(path, bytes) else path.read_bytes()
                 info.size = len(content)
                 ar.addfile(info, io.BytesIO(content))
     output = io.BytesIO()
@@ -50,10 +60,13 @@ def main():
     for p in sorted(SRC.rglob("*")):
         rel = p.relative_to(SRC)
         dest = (base / rel).as_posix()
+        if rel.parts[0] == "locale" or rel.as_posix() == "locale_extra.json":
+            continue  # Pack as a data-only .py resource for legacy updater compatibility.
         if p.is_dir():
             files.append((dest, None, True, False))
         elif (p.is_file() and rel.as_posix() != "images/warder_skull.png" and "__pycache__" not in rel.parts and p.suffix not in (".pyc", ".pyo")):
             files.append((dest, p, False, p.name == "install_deps.sh"))
+    files.append(((base / 'locale_data.py').as_posix(), locale_module(SRC), False, False))
     binary = tar_gz(files)
     output = ROOT / (PACKAGE + "_" + fields["Version"] + "_all.ipk")
     archive = io.BytesIO()
