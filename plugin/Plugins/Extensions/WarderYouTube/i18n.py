@@ -1179,6 +1179,13 @@ def external_catalog(code):
     if code not in LANGUAGES or code in MESSAGES:
         return {}
     try:
+        from .locale_data import CATALOGUES
+        values = CATALOGUES.get(code, {})
+        if isinstance(values, dict):
+            return {key: value for key, value in values.items() if isinstance(value, str) and value.strip()}
+    except ImportError:
+        pass
+    try:
         path = Path(__file__).resolve().parent / 'locale' / (code + '.json')
         values = json.loads(path.read_text(encoding='utf-8'))
         if not isinstance(values, dict):
@@ -1190,6 +1197,11 @@ def external_catalog(code):
 
 @lru_cache(maxsize=1)
 def extra_catalogs():
+    try:
+        from .locale_data import EXTRA
+        return EXTRA if isinstance(EXTRA, dict) else {}
+    except ImportError:
+        pass
     try:
         values = json.loads((Path(__file__).resolve().parent / "locale_extra.json").read_text(encoding="utf-8"))
         return values if isinstance(values, dict) else {}

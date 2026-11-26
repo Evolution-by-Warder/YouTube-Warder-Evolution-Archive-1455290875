@@ -53,7 +53,7 @@ class PackagingTests(unittest.TestCase):
                 members = tar.getmembers()
                 self.assertGreaterEqual(len(members), 10)
                 self.assertTrue(all(x.name.startswith("./" + m.TARGET_PREFIX + "/") for x in members))
-                self.assertTrue(all(x.name.endswith((".py", ".png", ".json", "/NOTICE", "/COPYING.GPLv2")) for x in members))
+                self.assertTrue(all(x.name.endswith((".py", ".png", "/NOTICE", "/COPYING.GPLv2")) for x in members))
                 self.assertTrue(any(x.name.endswith("/youtube_engine/extractor.py") for x in members))
                 self.assertTrue(any(x.name.endswith("/youtube_engine/COPYING.GPLv2") for x in members))
                 self.assertEqual(len({x.name for x in members}), len(members))
@@ -95,12 +95,28 @@ class PackagingTests(unittest.TestCase):
             parts = ar_parts(path.read_bytes())
             with tarfile.open(fileobj=io.BytesIO(parts["data.tar.gz"]), mode="r:gz") as tar:
                 expected = {"al", "el", "et", "fa", "fr", "hu", "it", "es", "lt", "nl", "pl", "pt", "ro", "ru", "tr", "uk", "zh"}
+                import ast
+                raw = tar.extractfile(builder.PREFIX + "/locale_data.py").read()
+                values = {node.targets[0].id: ast.literal_eval(node.value)
+                          for node in ast.parse(raw).body if isinstance(node, ast.Assign)}
+                self.assertEqual(set(values["CATALOGUES"]), expected)
                 for code in expected:
-                    raw = tar.extractfile(builder.PREFIX + "/locale/" + code + ".json").read()
-                    self.assertEqual(len(json.loads(raw)), 357, code)
-                extra = json.loads(tar.extractfile(builder.PREFIX + "/locale_extra.json").read())
+                    original = json.loads((builder.SRC / "locale" / (code + ".json")).read_text(encoding="utf-8"))
+                    self.assertEqual(len(original), 357, code)
+                    self.assertEqual(values["CATALOGUES"][code], original)
+                extra = values["EXTRA"]
+                self.assertEqual(extra, json.loads((builder.SRC / "locale_extra.json").read_text(encoding="utf-8")))
                 self.assertEqual(len(extra), 21)
                 self.assertTrue(all(len(catalogue) >= 57 for catalogue in extra.values()))
+                self.assertFalse(any(member.name.endswith(".json") for member in tar.getmembers()))
+            # Use the existing strict updater validator, not an expanded allowlist.
+            import hashlib
+            spec = importlib.util.spec_from_file_location("stable_update", builder.SRC / "update_core.py")
+            updater = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(updater)
+            data = path.read_bytes()
+            self.assertTrue(updater.validate_ipk(path, {"version": updater.CURRENT_VERSION,
+                                                      "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}))
 
     def test_video_focus_frames_are_transparent_inside_and_bright_on_edge(self):
         import zlib
