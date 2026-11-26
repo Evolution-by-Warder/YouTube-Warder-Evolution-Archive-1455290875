@@ -31,3 +31,8 @@ HEAD `c9311d2f8d70947193147557bee43acc5fe831c6`: plný poľský katalóg 357 kľ
 ## 2026-11-26 — rozšírenie na 14 z 21 jazykov, PR #41
 
 HEAD `4a0c37ee6895dd450bd029410246e7807e6242b0`: desať kompletných externých UTF-8 katalógov po 357 kľúčoch (ru, pl, fr, es, it, hu, pt, zh, uk, nl) + štyri pôvodné runtime slovníky. Kontrola formátovacích argumentov pred každým commitom. Predchádzajúci HEAD `5fbda4d860a2b2f741d501af215d2fa6847bc320` CI test job 139661010967 SUCCESS; najnovší HEAD: test 139661429964: completed/success. Zostáva sedem katalógov al, el, et, fa, lt, ro, tr, finálna kontrola všetkých 21 jazykov a audit reálne používaných reťazcov. Neaktivovať verziu 1.0.4 pred kompletnou lokalizáciou a úspešným CI. Produkčné IPK 1.0.3, feed, autentifikácia a používateľské údaje nezmenené.
+
+
+## 2026-11-26 — Romanian localization checkpoint
+
+Commit `68e16fb618370078c4dc02665e6084f16c30058c`: Romanian full 357-key catalogue added; exact key count and ordered format placeholders verified before write. Candidate now contains 15/21 languages (11 external catalogues + 4 original runtime dictionaries). Remaining: al, el, et, fa, lt, tr; keyboard and additional runtime audit; version/notes and verified stable publication. PR #41 stays draft; production 1.0.3 and feeds unchanged. CI at checkpoint: test success.
