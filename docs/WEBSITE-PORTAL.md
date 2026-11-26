@@ -123,3 +123,7 @@ Owner approved the revised introduction in SK/EN/DE/RU: evolution is the goal, a
 ## 2026-11-26 — verified YouTube 1.0.4 portal refresh
 
 Stable PR #41 merged `d7ee03a84c0ee83bfa33dd05f31d0a52f54923e5`; public IPK independently downloaded and SHA-256 verified by publisher job 139692238484. Main stable feed version 1.0.4, 739858 bytes, SHA-256 `ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f`. Homepage YouTube card and product detail in SK/EN/DE/RU now describe actual 21-language support, version, direct IPK and release notes. GSU remains at 13.41-r4 with planned support; no change to other products or graphics. Pending Pages deployment verification.
+
+## GSU 0.41.5 · 26. november 2026
+
+Katalóg a produktový detail používajú overenú stabilnú verziu v0.41.5, priamy odkaz na IPK a informácie v SK, EN, DE a RU. Detail uvádza aj SHA-256, migračný r6, 21 jazykov a zdroj existujúcich snímok. Výsledok nasadenia sleduje [webový PR #44](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/pull/44) a [produkčný register GSU](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/blob/main/NEXT-RELEASE.md).

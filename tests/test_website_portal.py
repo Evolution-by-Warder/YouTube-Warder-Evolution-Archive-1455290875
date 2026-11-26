@@ -229,8 +229,18 @@ class WebsitePortalTests(unittest.TestCase):
                 for claim in ("Podporuje 21 jazykov vrátane hodín, dátumov a aktualizačných hlásení.", "Supports 21 languages, including clocks, dates and update messages.", "Unterstützt 21 Sprachen einschließlich Uhrzeit, Datum und Update-Meldungen.", "Поддерживает 21 язык, включая часы, даты и сообщения об обновлении."):
                     self.assertIn(claim,card)
                     self.assertIn(claim,detail)
-                self.assertIn("v13.41-r6",card)
-                self.assertIn("v13.41-r6",detail)
+                self.assertIn("v0.41.5",card)
+                self.assertIn("v0.41.5",detail)
+                gsu="https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/releases/"
+                package=gsu+"download/v0.41.5/enigma2-plugin-extensions-gsu_0.41.5_all.ipk"
+                self.assertIn(package,card)
+                self.assertIn(package+".sha256",detail)
+                self.assertIn(gsu+"tag/v0.41.5",detail)
+                self.assertIn("13.41-r6", detail)
+                for title in ("Diagnostické centrá","Diagnostic centres","Diagnosebereiche","Центры диагностики"):
+                    self.assertIn(title,detail)
+                for gallery in ("predchádzajúce rozhranie","previous GSU interface","vorherige GSU-Oberfläche","предыдущий интерфейс GSU"):
+                    self.assertIn(gallery,detail)
                 self.assertNotIn("13.41-r4",card)
                 self.assertNotIn("13.41-r4",detail)
         script=(docs/"portal.js").read_text()

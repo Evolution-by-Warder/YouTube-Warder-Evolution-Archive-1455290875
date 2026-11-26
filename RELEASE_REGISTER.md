@@ -1,5 +1,11 @@
 # YouTube Warder Evolution – register vydaní a overení
 
+## 26. 11. 2026 · GSU Warder Evolution 0.41.5
+
+[GSU v0.41.5](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/releases/tag/v0.41.5) je stabilné vydanie z [PR #16](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/pull/16), zdroj 30a420d5019446c1b33f48fe586addc5f9ead153. Publikačný [workflow 45786453936](https://github.com/Evolution-by-Warder/GSU-Warder-Evolution/actions/runs/45786453936) overil verejný IPK s veľkosťou 3 873 060 bajtov a SHA-256 115bc57d4c842049d72864a0e2deaf0eceb35f0bb7d53f515cc5533e9abc48fc. Samostatný moderný feed je aktívny od commitu fac1e9a9a9a7ab022f75361dc0af94b0c44e80b2. Pôvodný r6 a r93 slúžia na migráciu.
+
+Existujúci [webový PR #44](https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/pull/44) synchronizuje katalóg a stránku GSU v SK/EN/DE/RU. Nové texty opisujú sedem centier, 21 jazykov, podporované rozlíšenia a hranice testovania. Fyzické snímky v galérii sú označené ako predchádzajúce rozhranie. Finálna kontrola živého webu a nasadenia Pages patrí do produkčného registra GSU.
+
 ## 2026-11-24 – verzia 1.0.3
 
 **Rozsah schválený vlastníkom:** nové ostré IPK po testovacej sérii 1.0.2~test1 až 1.0.2~test5, spolu so zápisom všetkých zmien do projektu. Príprava pokračuje z testovacej vetvy bez opakovania hotových úloh.
