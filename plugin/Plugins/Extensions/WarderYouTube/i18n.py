@@ -1187,8 +1187,24 @@ def external_catalog(code):
         return {}
 
 
+@lru_cache(maxsize=1)
+def extra_catalogs():
+    try:
+        values = json.loads((Path(__file__).resolve().parent / "locale_extra.json").read_text(encoding="utf-8"))
+        return values if isinstance(values, dict) else {}
+    except (OSError, ValueError, UnicodeError):
+        return {}
+
+
 def tr(message):
     selected = language_code()
+    extras = extra_catalogs()
+    local = extras.get(selected, {})
+    fallback = extras.get("en", {})
+    if isinstance(local, dict) and isinstance(local.get(message), str) and local[message]:
+        return local[message]
+    if isinstance(fallback, dict) and isinstance(fallback.get(message), str) and fallback[message]:
+        return fallback[message]
     if selected == "sk":
         # A Slovak source message stays Slovak unless explicitly overridden.
         return MESSAGES["sk"].get(message, message)

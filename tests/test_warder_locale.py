@@ -117,7 +117,8 @@ class LanguageTests(unittest.TestCase):
         keys = set().union(*(catalog.keys() for catalog in lang.MESSAGES.values()))
         placeholders = re.compile(r"%(?:\([^)]+\))?[-+#0 ]*\d*(?:\.\d+)?[diouxXeEfFgGcrsa%]")
         paths = list((P.parent / "locale").glob("*.json"))
-        self.assertTrue(paths)
+        self.assertEqual({path.stem for path in paths}, set(lang.LANGUAGES) - set(lang.MESSAGES))
+        self.assertEqual(len(lang.LANGUAGES), 21)
         for path in paths:
             with self.subTest(language=path.stem):
                 self.assertIn(path.stem, lang.LANGUAGES)
@@ -136,6 +137,19 @@ class LanguageTests(unittest.TestCase):
         for alias, canonical in lang.ALIASES.items():
             self.assertEqual(self.translate(alias, "Search"), self.translate(canonical, "Search"))
         self.assertEqual(self.translate("../../etc", "Search"), "Search")
+
+    def test_extra_runtime_messages_cover_all_languages(self):
+        extra = lang.extra_catalogs()
+        self.assertEqual(set(extra), set(lang.LANGUAGES))
+        keys = set(extra["en"])
+        self.assertGreaterEqual(len(keys), 20)
+        for code, values in extra.items():
+            self.assertEqual(set(values), keys)
+            for key, value in values.items():
+                self.assertIsInstance(value, str)
+                self.assertTrue(value.strip())
+                self.assertEqual(self.translate(code, key), value)
+        self.assertEqual(self.translate("xx_XX", "Prihlásenie do YouTube"), "Sign in to YouTube")
 
     def test_unknown_keys_stay_human_readable(self):
         self.assertEqual(self.translate("en_GB", "Warder Evolution"), "Warder Evolution")
