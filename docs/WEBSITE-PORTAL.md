@@ -118,3 +118,8 @@ Owner additionally requested acknowledging oerlgrey for Radio Warder Evolution. 
 ### Philosophy wording refinement — 26 November 2026
 
 Owner approved the revised introduction in SK/EN/DE/RU: evolution is the goal, assimilation of proven solutions and combining them with new ideas are the means. Preserve and improve what works rather than destroy it. The approved author-credit paragraph remains unchanged. Localization regression check now requires both evolution and assimilation in each language. Website copy only.
+
+
+## 2026-11-26 — verified YouTube 1.0.4 portal refresh
+
+Stable PR #41 merged `d7ee03a84c0ee83bfa33dd05f31d0a52f54923e5`; public IPK independently downloaded and SHA-256 verified by publisher job 139692238484. Main stable feed version 1.0.4, 739858 bytes, SHA-256 `ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f`. Homepage YouTube card and product detail in SK/EN/DE/RU now describe actual 21-language support, version, direct IPK and release notes. GSU remains at 13.41-r4 with planned support; no change to other products or graphics. Pending Pages deployment verification.

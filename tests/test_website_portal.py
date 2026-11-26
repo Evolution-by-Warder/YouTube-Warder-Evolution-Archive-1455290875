@@ -219,7 +219,7 @@ class WebsitePortalTests(unittest.TestCase):
             if key in ("glass","radio"):
                 self.assertIn("podporuje 21 jazykov",card)
                 self.assertIn("podporuje 21 jazykov",detail)
-            elif key == "picon":
+            elif key in ("picon","youtube"):
                 for claim in ("Podporuje 21 jazykov.", "Supports 21 languages.", "Unterstützt 21 Sprachen.", "Поддерживает 21 язык."):
                     self.assertIn(claim,card)
                     self.assertIn(claim,detail)
