@@ -7,6 +7,10 @@
     "tag": "youtube-warder-v1.0.4",
     "url": "https://github.com/Evolution-by-Warder/YouTube-Warder-Evolution/releases/download/youtube-warder-v1.0.4/enigma2-plugin-extensions-youtube-warder-evolution_1.0.4_all.ipk",
     "sha256": "ffba1d61982a9c09fdeef0d971992fb3832d5e72cb04b282985a2bc0cc93769f",
+    "warder_signature": {
+      "manifest_b64": "eyJiYWxpayI6ImVuaWdtYTItcGx1Z2luLWV4dGVuc2lvbnMteW91dHViZS13YXJkZXItZXZvbHV0aW9uIiwiY29tbWl0IjoiZDdlZTAzYTg0YzBlZTgzYmZhMzNkZDA1ZjMxZDBhNTJmNTQ5MjNlNSIsImthbmFsIjoic3RhYmxlIiwicHJvamVrdCI6IkV2b2x1dGlvbi1ieS1XYXJkZXIvWW91VHViZS1XYXJkZXItRXZvbHV0aW9uIiwic2NoZW1hIjoxLCJzaGEyNTYiOiJmZmJhMWQ2MTk4MmE5YzA5ZmRlZWYwZDk3MTk5MmZiMzgzMmQ1ZTcyY2IwNGIyODI5ODVhMmJjMGNjOTM3NjlmIiwidmVyemlhIjoiMS4wLjQiLCJ2ZXJ6aWFfYmFsaWthIjoiMS4wLjQifQo=",
+      "podpis_b64": "hVo0hrizYHNBug+iyy78yKWfz65FtzvKMgHGvFMKI+n6R0myBHfp3bDXQQ5DXnnKsWyt+mctHjoBmD9Q30+PAQ=="
+    },
     "bytes": 739858,
     "notes": "Stable YouTube Warder Evolution 1.0.4"
   }
